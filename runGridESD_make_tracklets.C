@@ -9,24 +9,17 @@ class AliEmcalJetTask;
 class AliAnalysisGrid;
 class AliAnalysisAlien;
 
-#if ROOT_VERSION_CODE >= ROOT_VERSION(6, 00, 0)
 #include "AliAODInputHandler.h"
 #include "AliAnalysisAlien.h"
 #include "AliAnalysisManager.h"
 #include "AliESDInputHandler.h"
 #include "AliMCEventHandler.h"
+
 #include "Ali_make_tracklets_from_digits.h"
-#endif
 
 void runGridESD_make_tracklets() {
     // aliroot runGridESD_make_tracklets.C
     gInterpreter->GenerateDictionary("std::vector<std::vector<std::vector<std::vector<Double_t>>>>", "vector");
-
-#if ROOT_VERSION_CODE >= ROOT_VERSION(6, 00, 0)
-    std::cout << "ROOT 6 is used" << std::endl;
-#else
-    std::cout << "ROOT 5 is used" << std::endl;
-#endif
 
     TString fname = "TRD_tracklets";
 
@@ -36,6 +29,7 @@ void runGridESD_make_tracklets() {
     Bool_t local = kFALSE;  // kTRUE for local analysis, kFALSE for grid analysis
     Int_t sub = 702;        // 702
     TString sRunPeriod;
+
     if (beamtime == 0)  // p-Pb 2016
     {
         sub = 702;
@@ -85,8 +79,7 @@ void runGridESD_make_tracklets() {
     /// set parameters for the analysis
     const Char_t *cDataType = "ESD";               // set analysis type; AOD or ESD
     const Char_t *cRunPeriod = sRunPeriod.Data();  // set run period, LHC18q
-    // const UInt_t iNumEvents = 5;                             // number of events to be analyzed
-    const Char_t *cGridMode = "full";  // grid mode; test, full or terminate (for merging)
+    const Char_t *cGridMode = "full";              // grid mode; test, full or terminate (for merging)
     Bool_t useJDL = kTRUE;
     const Char_t *cTaskName = "TRD_Make_Tracklets";  // name of the task
 
@@ -135,60 +128,45 @@ void runGridESD_make_tracklets() {
     TMacro PIDadd(gSystem->ExpandPathName("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C"));
     AliAnalysisTaskPIDResponse *PIDresponseTask = reinterpret_cast<AliAnalysisTaskPIDResponse *>(PIDadd.Exec());
 
-    // gInterpreter->LoadMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C"); // No idea <-
-    // gROOT->LoadMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C"); // No idea <-
-    // AliAnalysisTaskPIDResponse *taskPID=AddTaskPIDResponse(kFALSE,kTRUE,kTRUE,"1"); // <-
+    // gInterpreter->LoadMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C");
+    // gROOT->LoadMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C");
+    // AliAnalysisTaskPIDResponse *taskPID=AddTaskPIDResponse(kFALSE,kTRUE,kTRUE,"1");
 
     // compile the class (locally) with debug symbols
     gInterpreter->LoadMacro("Ali_make_tracklets_from_digits.cxx+g");
-    std::cout << "Loaded macro Ali_make_tracklets_from_digits.cxx" << std::endl;
 
     // load the addtask macro and create the task
     Ali_make_tracklets_from_digits *myTask = 0;
-    // myTask = reinterpret_cast<Ali_make_tracklets_from_digits*>(gInterpreter->ExecuteMacro("AddTaskJetCorrelationsLB.C(\"usedefault\",
-    // \"usedefault\", \"usedefault\", \"new\",
-    // \"alien:///alice/cern.ch/user/l/lbergman/EfficiencyHistograms_LHC18q/EfficiencyHistos_LHC18q.root\")" ));
     myTask = reinterpret_cast<Ali_make_tracklets_from_digits *>(gInterpreter->ExecuteMacro(Form("AddTask_tracklets_aschmah.C")));
 
     // For Monte Carlo input
     if (isMC) {
-        std::cout << "Monte Carlo input selected" << std::endl;
         AliMCEventHandler *mcHandler = new AliMCEventHandler();
         mgr->SetMCtruthEventHandler(mcHandler);
         mcHandler->SetPreReadMode(AliMCEventHandler::PreReadMode_t::kLmPreRead);
         // set below to kTRUE to read also track refs
         mcHandler->SetReadTR(kTRUE);
-        std::cout << "Monte Carlo setup complete" << std::endl;
     }
 
     /// start analysis
     if (!mgr->InitAnalysis()) {
         return;
     }
-    mgr->SetDebugLevel(3);  // 2
+
+    mgr->SetDebugLevel(3);
     mgr->PrintStatus();
     mgr->SetUseProgressBar(kTRUE, 250);
 
     if (local) {
+
+        /**********************/
+        /*** LOCAL ANALYSIS ***/
+        /**********************/
+
         myTask->EnableLocalMode();
         TChain *pChain = new TChain("esdTree");
 
-        // if(isMC){
-        //     printf("Error: MC requested\n");
-        //     return;
-        // }
-        // else
         {
-            // pChain->Add("/misc/alidata131/alice/data/2016/LHC16q/265338/pass1_CENT_wSDD/16000265338030.1804/AliESDs.root");
-            // pChain->Add("/misc/alidata131/alice/data/2016/LHC16q/265338/pass1_CENT_wSDD/16000265338030.1805/AliESDs.root");
-            // pChain->Add("/misc/alidata131/alice/data/2016/LHC16q/265338/pass1_CENT_wSDD/16000265338030.1806/AliESDs.root");
-            // pChain->Add("/misc/alidata131/alice/data/2016/LHC16q/265338/pass1_CENT_wSDD/16000265338030.1807/AliESDs.root");
-            // pChain->Add("/misc/alidata131/alice/data/2016/LHC16q/265338/pass1_CENT_wSDD/16000265338030.1808/AliESDs.root");
-            // pChain->Add("/misc/alidata131/alice/data/2016/LHC16q/265338/pass1_CENT_wSDD/16000265338030.1809/AliESDs.root");
-            // pChain->Add("/misc/alidata131/alice/data/2016/LHC16q/265338/pass1_CENT_wSDD/16000265338030.1810/AliESDs.root");
-            // pChain->Add("/misc/alidata131/alice/data/2016/LHC16q/265338/pass1_CENT_wSDD/16000265338030.1811/AliESDs.root");
-            // pChain->Add("/misc/alidata131/alice/data/2016/LHC16q/265338/pass1_CENT_wSDD/16000265338030.1900/AliESDs.root");
-            // pChain->Add("/misc/alidata131/alice/data/2016/LHC16q/265338/pass1_CENT_wSDD/16000265338030.1901/AliESDs.root");
             if (sub == 702) {
                 pChain->Add("/misc/alidata120/alice_u/schmah/TRD_self_tracking/Raw_data_pPb_2016/AliESDs.root");
             }
@@ -214,18 +192,22 @@ void runGridESD_make_tracklets() {
 
         mgr->StartAnalysis("local", pChain);
     } else {
-        // grid analysis
+
+        /**********************/
+        /*** GRID ANALYSIS ***/
+        /**********************/
+
         // set run list
         Int_t gridTest = 1;
         TString sGridMode(cGridMode);
-        if (sGridMode == "full") gridTest = 0;
-        if (sGridMode == "terminate") gridTest = 2;
+        if (sGridMode == "full") {
+            gridTest = 0;
+        }
+        if (sGridMode == "terminate") {
+            gridTest = 2;
+        }
 
         AliAnalysisAlien *alienHandler = new AliAnalysisAlien();
-
-        // AliAnalysisAlien::SetExecutableCommand("valgrind --tool=memcheck --log-file=/tmp/valgrind_memcheck.log
-        // --suppressions=$ROOTSYS/etc/valgrind-root.supp aliroot -b -q"); alienHandler->SetExecutableCommand("valgrind --tool=memcheck
-        // --log-file=/tmp/valgrind_memcheck.log --suppressions=$ROOTSYS/etc/valgrind-root.supp aliroot -b -q");
 
         // also specify the include (header) paths on grid
         alienHandler->AddIncludePath("-I. -I$ROOTSYS/include -I$ALICE_ROOT -I$ALICE_ROOT/include -I$ALICE_PHYSICS/include");
@@ -235,9 +217,6 @@ void runGridESD_make_tracklets() {
             "Ali_AS_Event.h Ali_AS_EventLinkDef.h Ali_make_tracklets_from_digits.h Ali_make_tracklets_from_digits.cxx Ali_TRD_ST.h "
             "Ali_TRD_ST_LinkDef.h");
         alienHandler->SetAnalysisSource("Ali_make_tracklets_from_digits.cxx");
-
-        // select the aliphysics version. all other packages
-        // are LOADED AUTOMATICALLY!
 
 #if ROOT_VERSION_CODE >= ROOT_VERSION(6, 00, 0)
         // alienHandler->SetAliPhysicsVersion("vAN-20200815_ROOT6-1");
@@ -256,9 +235,9 @@ void runGridESD_make_tracklets() {
             alienHandler->SetDataPattern("*AOD/*AOD.root");
         } else {
             if (isMC && sub == 123) {
-                alienHandler->SetGridDataDir("/alice/sim/2022/LHC22a3");                // OK
-                alienHandler->SetGridWorkingDir(Form("%s/sub%d/", fname.Data(), sub));  // No idea
-                alienHandler->SetDataPattern("*/AliESDs.root");                         // OK
+                alienHandler->SetGridDataDir("/alice/sim/2022/LHC22a3");
+                alienHandler->SetGridWorkingDir(Form("%s/sub%d/", fname.Data(), sub));
+                alienHandler->SetDataPattern("*/AliESDs.root");
                 alienHandler->SetAnalysisMacro(Form("TaskTrackAna%d.C", sub));
                 alienHandler->SetExecutable(Form("TaskTrackAna%d.sh", sub));
                 alienHandler->SetJDLName(Form("TaskTrackAna%d.jdl", sub));
@@ -269,34 +248,34 @@ void runGridESD_make_tracklets() {
                                       265425, 265426, 265427, 265435, 265499, 265500, 265501, 265521, 265525};  //  runs in total
 
                 for (Int_t irun = 1; irun < 5; irun++) {
-                    AliInfoF("%d %d", irun, runnumbers[irun]);
+                    printf("%d %d", irun, runnumbers[irun]);
                     alienHandler->AddRunNumber(runnumbers[irun]);
                 }
             }
 
             if (sub == 702) {
-                alienHandler->SetGridDataDir("/alice/data/2016/LHC16q");                // OK
-                alienHandler->SetGridWorkingDir(Form("%s/sub%d/", fname.Data(), sub));  // No idea
-                alienHandler->SetDataPattern("*pass1_CENT_wSDD/*/AliESDs.root");        // OK
+                alienHandler->SetGridDataDir("/alice/data/2016/LHC16q");
+                alienHandler->SetGridWorkingDir(Form("%s/sub%d/", fname.Data(), sub));
+                alienHandler->SetDataPattern("*pass1_CENT_wSDD/*/AliESDs.root");
                 alienHandler->SetAnalysisMacro(Form("TaskTrackAna%d.C", sub));
                 alienHandler->SetExecutable(Form("TaskTrackAna%d.sh", sub));
                 alienHandler->SetJDLName(Form("TaskTrackAna%d.jdl", sub));
                 alienHandler->SetRunPrefix("000");
 
-                Int_t runnumbers[] = {265338, 265525, 265521, 265501, 265500, 265499, 265435, 265427, 265426, 265425, 265424,  // OK
+                Int_t runnumbers[] = {265338, 265525, 265521, 265501, 265500, 265499, 265435, 265427, 265426, 265425, 265424,
                                       265422, 265421, 265420, 265419, 265388, 265387, 265385, 265384, 265383, 265381, 265378,
                                       265377, 265344, 265343, 265342, 265339, 265336, 265334, 265332, 265309};  // 31 runs in total
 
                 for (Int_t irun = 0; irun < 1; irun++) {
-                    AliInfoF("%d %d", irun, runnumbers[irun]);
+                    printf("%d %d", irun, runnumbers[irun]);
                     alienHandler->AddRunNumber(runnumbers[irun]);
                 }
             }
             if (sub == 7021) {
                 // Full production for p-Pb, only one run: 265501
-                alienHandler->SetGridDataDir("/alice/data/2016/LHC16q");                // OK
-                alienHandler->SetGridWorkingDir(Form("%s/sub%d/", fname.Data(), sub));  // No idea
-                alienHandler->SetDataPattern("*pass2_TRD/*/AliESDs.root");              // OK
+                alienHandler->SetGridDataDir("/alice/data/2016/LHC16q");
+                alienHandler->SetGridWorkingDir(Form("%s/sub%d/", fname.Data(), sub));
+                alienHandler->SetDataPattern("*pass2_TRD/*/AliESDs.root");
                 alienHandler->SetAnalysisMacro(Form("TaskTrackAna%d.C", sub));
                 alienHandler->SetExecutable(Form("TaskTrackAna%d.sh", sub));
                 alienHandler->SetJDLName(Form("TaskTrackAna%d.jdl", sub));
@@ -305,14 +284,14 @@ void runGridESD_make_tracklets() {
                 Int_t runnumbers[] = {265501};  // 1 run in total
 
                 for (Int_t irun = 0; irun < 1; irun++) {
-                    AliInfoF("%d %d", irun, runnumbers[irun]);
+                    printf("%d %d", irun, runnumbers[irun]);
                     alienHandler->AddRunNumber(runnumbers[irun]);
                 }
             }
             if (sub == 800) {
-                alienHandler->SetGridDataDir("/alice/data/2018/LHC18r");                // OK
-                alienHandler->SetGridWorkingDir(Form("%s/sub%d/", fname.Data(), sub));  // No idea
-                alienHandler->SetDataPattern("*filter_trd_pass3/*/AliESDs.root");       // OK
+                alienHandler->SetGridDataDir("/alice/data/2018/LHC18r");
+                alienHandler->SetGridWorkingDir(Form("%s/sub%d/", fname.Data(), sub));
+                alienHandler->SetDataPattern("*filter_trd_pass3/*/AliESDs.root");
                 alienHandler->SetAnalysisMacro(Form("TaskTrackAna%d.C", sub));
                 alienHandler->SetExecutable(Form("TaskTrackAna%d.sh", sub));
                 alienHandler->SetJDLName(Form("TaskTrackAna%d.jdl", sub));
@@ -321,7 +300,7 @@ void runGridESD_make_tracklets() {
                 Int_t runnumbers[] = {296849, 296850, 297595};  // 3 runs in total
 
                 for (Int_t irun = 0; irun < 1; irun++) {
-                    AliInfoF("%d %d", irun, runnumbers[irun]);
+                    printf("%d %d", irun, runnumbers[irun]);
                     alienHandler->AddRunNumber(runnumbers[irun]);
                 }
             }

@@ -1,5 +1,4 @@
-AliAnalysisTask *AddTask_tracklets_aschmah(Int_t trigger = 0) {
-    AlInfo("Starting...");
+AliAnalysisTask *AddTask_tracklets_aschmah() {
 
     // get the current analysis manager
     AliAnalysisManager *mgr = AliAnalysisManager::GetAnalysisManager();
@@ -14,11 +13,9 @@ AliAnalysisTask *AddTask_tracklets_aschmah(Int_t trigger = 0) {
 
     TString outputFileName = AliAnalysisManager::GetCommonFileName();
     outputFileName += ":TRD_analysis_hists";
-    AliInfoF("outputFileName   = %s", outputFileName.Data());
 
     TString outputFileName_B = AliAnalysisManager::GetCommonFileName();
     outputFileName_B += ":EventsAndTracks";
-    AliInfoF("outputFileName_B = %s", outputFileName_B.Data());
 
     TString containerName = "TRD_Digits_output";
 
@@ -32,8 +29,6 @@ AliAnalysisTask *AddTask_tracklets_aschmah(Int_t trigger = 0) {
     mgr->ConnectInput(task, 0, mgr->GetCommonInputContainer());
     mgr->ConnectOutput(task, 1, coutput1);  // TList
     mgr->ConnectOutput(task, 2, coutput2);  // TTree
-
-    AlInfo("Finished.");
 
     return task;
 }

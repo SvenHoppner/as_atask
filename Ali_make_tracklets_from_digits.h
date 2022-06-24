@@ -3,10 +3,6 @@
 
 class AliTRDdigitsManager;
 
-//#if ROOT_VERSION_CODE >= ROOT_VERSION(6,00,0)
-//#include "AliAnalysisTaskSE.h"
-//#endif
-
 #include "AliAnalysisTaskSE.h"
 #include "AliTOFGeometry.h"
 #include "AliTRDcalibDB.h"
@@ -21,8 +17,14 @@ class AliTRDdigitsManager;
 
 #include "Ali_AS_Event.h"
 #include "Ali_AS_EventLinkDef.h"
-#include "Ali_TRD_ST.h"
+
+#include "Ali_MC_particle.h"
 #include "Ali_TRD_ST_LinkDef.h"
+#include "Ali_TRD_ST_TOF_hit.h"
+#include "Ali_TRD_ST_Tracklets.h"
+#include "Ali_TRD_ST_TPC_Track.h"
+#include "Ali_TRD_ST_Event.h"
+#include "Ali_Helix.h"
 
 ClassImp(Ali_AS_TRD_digit);
 ClassImp(Ali_AS_Track);
@@ -34,6 +36,7 @@ ClassImp(Ali_TRD_ST_TOF_hit);
 ClassImp(Ali_MC_particle);
 ClassImp(Ali_TRD_ST_TPC_Track);
 ClassImp(Ali_TRD_ST_Event);
+ClassImp(Ali_Helix);
 
 static std::vector<std::vector<std::vector<std::vector<Double_t>>>> vec_connected_clusters;  // i_det i_trkl i_point i_xyz
 

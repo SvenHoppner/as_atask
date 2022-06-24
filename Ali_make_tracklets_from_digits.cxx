@@ -54,9 +54,9 @@
 #include "TObjString.h"
 #include "TPolyMarker.h"
 #include "TProfile.h"
+#include "TString.h"
 #include "TSystem.h"
 #include "TTree.h"
-#include "TString.h"
 
 #include "Ali_make_tracklets_from_digits.h"
 
@@ -498,7 +498,7 @@ Bool_t Ali_make_tracklets_from_digits::UserNotify() {
     }
 
     std::vector<std::vector<TH1D*>> vec_TH1D_TRD_geometry;  // store for all 540 chambers the 8 corner vertices per detector
-    vec_TH1D_TRD_geometry.resize(3);              // x,y,z
+    vec_TH1D_TRD_geometry.resize(3);                        // x,y,z
     for (Int_t i_xyz = 0; i_xyz < 3; i_xyz++) {
         vec_TH1D_TRD_geometry[i_xyz].resize(8);  // 8 vertices
         for (Int_t i_vertex = 0; i_vertex < 8; i_vertex++) {
@@ -2072,8 +2072,8 @@ void Ali_make_tracklets_from_digits::Make_clusters_and_get_tracklets_fit(Double_
     vec_connected_clusters.resize(540);  // i_det i_trkl i_point (up to 24 time bins, can be less) i_xyz
 
     std::vector<std::vector<Double_t>> vec_single_connected_clusters;  // for one tracklet, i_point (up to 24 time bins, can be less) i_xyz
-    std::vector<Double_t> vec_single_point;                       // x,y,z,ADC
-    vec_single_point.resize(4);                              // x,y,z,ADC
+    std::vector<Double_t> vec_single_point;                            // x,y,z,ADC
+    vec_single_point.resize(4);                                        // x,y,z,ADC
 
     std::vector<std::vector<Int_t>> vec_N_clusters_self_tracklet_points;
     vec_N_clusters_self_tracklet_points.resize(540);
@@ -2258,7 +2258,6 @@ void Ali_make_tracklets_from_digits::Make_clusters_and_get_tracklets_fit(Double_
             // vec_ADC_val[i_det][i_trkl].resize((Int_t)vec_self_tracklet_points[i_det][i_trkl].size());
             vec_ADC_val[i_det][i_trkl].resize((Int_t)vec_connected_clusters[i_det][i_trkl].size());  // ggALEX
 
-
             // Calculate tracklet base and direction vectors
 
             // Space point on straight line which is closes to first space point of fitted clusters
@@ -2298,7 +2297,6 @@ void Ali_make_tracklets_from_digits::Make_clusters_and_get_tracklets_fit(Double_
                 vec_ADC_val[i_det][i_trkl][i_timebin] = vec_connected_clusters[i_det][i_trkl][i_timebin][3];  // ALEX
             }
 
-
             Double_t radius = TMath::Sqrt(TMath::Power(TV3_base_fit_t0[0], 2) + TMath::Power(TV3_base_fit_t0[1], 2));
             // printf("amin: %4.3f, par: {%4.3f, %4.3f, %4.3f, %4.3f} \n",amin,parFit[0],parFit[1],parFit[2],parFit[3]);
             // printf("   --> radius: %4.3f, point first cluster: {%4.3f, %4.3f, %4.3f}, point line: {%4.3f, %4.3f, %4.3f}
@@ -2308,9 +2306,7 @@ void Ali_make_tracklets_from_digits::Make_clusters_and_get_tracklets_fit(Double_
             trkl_index++;
         }
     }
-
 }
-
 
 //________________________________________________________________________
 void Ali_make_tracklets_from_digits::Terminate(Option_t*) { std::cout << "In terminate" << std::endl; }

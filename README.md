@@ -5,17 +5,23 @@ Legacy code.
 
 ## Requirements
 
-* A proper **AliPhysics** and **AliRoot** environment.
+* A proper **AliPhysics** and **AliRoot** environment, with **ROOT v6** onwards.
 
 * A valid **alien-token**
 
 ## Usage
 
-* To use interactively on a single run:
+* To use interactively on a single run, you need the following files in the directory:
 
-```
-aliroot runGridESD_make_tracklets.C
-```
+  * `AliESDs.root`
+
+  * `TRD.Digits.root`
+
+  Then, you must execute:
+
+  ```
+  aliroot runGridESD_make_tracklets.C
+  ```
 
 * To use interactively but sequential runs
 

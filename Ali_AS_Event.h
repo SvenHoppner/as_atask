@@ -641,4 +641,4 @@ class Ali_AS_Event : public TObject {
     ClassDef(Ali_AS_Event, 1);  // A simple event compiled of tracks
 };
 
-#endif  // __ALI_AS_EVENT_H__
+#endif
