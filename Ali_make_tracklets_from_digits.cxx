@@ -862,7 +862,7 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t *)
                 TRD_ST_MC_particle ->set_N_daughters(MC_N_daughters);
                 for(Int_t i_daughter = 0; i_daughter < MC_N_daughters; i_daughter++)
                 {
-                    if(MC_N_daughters > 4) break;
+                    if(i_daughter > 4) break; // sven edit
                     TRD_ST_MC_particle ->set_arr_index_daughters(i_daughter,particle->GetDaughter(i_daughter));
                 }
 
