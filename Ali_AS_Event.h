@@ -201,6 +201,7 @@ private:
     Float_t        Track_length; // length of track
     Float_t        aliHelix_params[9];
     Float_t        aliHelix_TRD_params[9];
+    Float_t        MC_label; // index/label of corresponding MC particle, borquez edit
 
     UShort_t      fNumTRDdigits; // number of TRD digits for this track
     UShort_t      fNumOfflineTracklets; // number of offline tracklets
@@ -237,7 +238,8 @@ public:
         fNumTRDdigits(0),
         fNumOfflineTracklets(0),
         fTRD_digits(),
-        fOfflineTracklets()
+        fOfflineTracklets(),
+        MC_label(0) // borquez edit
     {
         // constructor
         fTRD_digits       = new TClonesArray( "Ali_AS_TRD_digit", 10 );
@@ -275,6 +277,7 @@ public:
 	void setTPCdEdx(Float_t f) { TPCdEdx = f; }
 	void setTOFsignal(Float_t f) { TOFsignal = f; }
     void setTrack_length(Float_t f) { Track_length = f; }
+    void setMC_label(Float_t f) { MC_label = f; } // borquez edit
 
     void setHelix(Float_t a, Float_t b,Float_t c,Float_t d,Float_t e,Float_t f,Float_t g,Float_t h,Float_t i)
     {
@@ -327,6 +330,7 @@ public:
     Float_t getTrack_length() const { return Track_length; }
     Float_t getHelix_param(Int_t i_param) const { return aliHelix_params[i_param]; }
     Float_t getHelix_TRD_param(Int_t i_param) const { return aliHelix_TRD_params[i_param]; }
+    Float_t getMC_label() { return MC_label; } // borquez edit
 
 	Float_t getTRD_ADC(Int_t i_layer, Int_t i_time_bin) const {
 	    if (i_layer < 0 || i_layer > 5 || i_time_bin < 0 || i_time_bin > 7) {

@@ -157,6 +157,7 @@ private:
     Float_t        TPCdEdx; // Energy loss information of TPC
     Float_t        TOFsignal; // Time-of-flight
     Float_t        Track_length; // length of track
+    Float_t        MC_label; // index/label of corresponding MC particle, borquez edit
 
     Float_t        aliHelix_params[6];
     Float_t        aliHelix_TRD_params[6];
@@ -196,6 +197,7 @@ public:
 	void setTPCdEdx(Float_t f)                       {TPCdEdx = f;}
 	void setTOFsignal(Float_t f)                     {TOFsignal = f;}
         void setTrack_length(Float_t f)                  {Track_length = f;}
+    void setMC_label(Float_t f) { MC_label = f; } // borquez edit
 
         void setHelix(Float_t a, Float_t b,Float_t c,Float_t d,Float_t e,Float_t f)
         {
@@ -243,6 +245,7 @@ public:
         Float_t   getTrack_length() const           { return Track_length; }
         Float_t   getHelix_param(Int_t i_param) const              {return aliHelix_params[i_param]; }
         Float_t   getHelix_TRD_param(Int_t i_param) const              {return aliHelix_TRD_params[i_param]; }
+    Float_t getMC_label() { return MC_label; } // borquez edit
 
 
 

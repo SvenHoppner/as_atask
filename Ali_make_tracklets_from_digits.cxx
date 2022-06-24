@@ -1717,6 +1717,7 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t *)
 	Double_t TOF_signal   = track ->GetTOFsignal(); // time-of-flight?
         Double_t Track_length = track ->GetIntegratedLength();
 	UShort_t N_TPC_cls    = track ->GetTPCNcls();
+    Double_t MC_label = TMath::Abs(track->GetLabel()); // borquez edit
 
         Int_t pT_bin;
 	for(Int_t i_pT = 0; i_pT < N_pT_bins; i_pT++)
@@ -1813,7 +1814,7 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t *)
 	AS_Track  ->setTPCdEdx(TPC_signal);
 	AS_Track  ->setTOFsignal(TOF_signal);
         AS_Track  ->setTrack_length(Track_length);
-
+        AS_Track  ->setMC_label(MC_label); // borquez edit
 
 	//-------------------
 	// Get TRD information
@@ -1942,6 +1943,7 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t *)
         TRD_ST_TPC_Track ->setTPCdEdx( AS_Track ->getTPCdEdx() );
         TRD_ST_TPC_Track ->setTOFsignal( AS_Track ->getTOFsignal() ); // in ps (1E-12 s)
         TRD_ST_TPC_Track ->setTrack_length( AS_Track ->getTrack_length() );
+        TRD_ST_TPC_Track ->setMC_label( AS_Track ->getMC_label() ); // borquez edit
 
         for(Int_t i_helix_par = 0; i_helix_par < 9; i_helix_par++)
         {
