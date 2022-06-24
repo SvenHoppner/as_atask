@@ -1,8 +1,6 @@
 AliAnalysisTask *AddTask_tracklets_aschmah(Int_t trigger = 0) {
-    cout << "------------------------------------------------------------------------------------------------------------------------------"
-            "----"
-         << endl;
-    cout << " in add macro " << endl;
+    AlInfo("Starting...");
+
     // get the current analysis manager
     AliAnalysisManager *mgr = AliAnalysisManager::GetAnalysisManager();
     if (!mgr) {
@@ -10,18 +8,18 @@ AliAnalysisTask *AddTask_tracklets_aschmah(Int_t trigger = 0) {
         return 0;
     }
 
-    //========= Add task to the ANALYSIS manager =====
+    // Add task to the Analysis Manager
     Ali_make_tracklets_from_digits *task = new Ali_make_tracklets_from_digits("DigitsTask");
-    mgr->AddTask(task);  // <-
+    mgr->AddTask(task);
+
     TString outputFileName = AliAnalysisManager::GetCommonFileName();
     outputFileName += ":TRD_analysis_hists";
-    cout << "outputFileName: " << outputFileName << endl;
+    AliInfoF("outputFileName   = %s", outputFileName.Data());
 
     TString outputFileName_B = AliAnalysisManager::GetCommonFileName();
     outputFileName_B += ":EventsAndTracks";
-    cout << "outputFileName_B: " << outputFileName_B << endl;
+    AliInfoF("outputFileName_B = %s", outputFileName_B.Data());
 
-    //----------------------------------
     TString containerName = "TRD_Digits_output";
 
     TString results = "AnalysisResults.root";
@@ -34,9 +32,8 @@ AliAnalysisTask *AddTask_tracklets_aschmah(Int_t trigger = 0) {
     mgr->ConnectInput(task, 0, mgr->GetCommonInputContainer());
     mgr->ConnectOutput(task, 1, coutput1);  // TList
     mgr->ConnectOutput(task, 2, coutput2);  // TTree
-    //----------------------------------
 
-    cout << "End of AddTask_tracklets_aschmah" << endl;
+    AlInfo("Finished.");
 
     return task;
 }

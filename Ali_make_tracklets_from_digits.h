@@ -8,13 +8,9 @@ class AliTRDdigitsManager;
 //#endif
 
 #include "AliAnalysisTaskSE.h"
-
 #include "AliTOFGeometry.h"
 #include "AliTRDcalibDB.h"
-#include "Ali_AS_Event.h"
-#include "Ali_AS_EventLinkDef.h"
-#include "Ali_TRD_ST.h"
-#include "Ali_TRD_ST_LinkDef.h"
+
 #include "TClonesArray.h"
 #include "TDecompSVD.h"
 #include "TGrid.h"
@@ -22,6 +18,11 @@ class AliTRDdigitsManager;
 #include "TMath.h"
 #include "TMatrixD.h"
 #include "TObject.h"
+
+#include "Ali_AS_Event.h"
+#include "Ali_AS_EventLinkDef.h"
+#include "Ali_TRD_ST.h"
+#include "Ali_TRD_ST_LinkDef.h"
 
 ClassImp(Ali_AS_TRD_digit);
 ClassImp(Ali_AS_Track);
@@ -34,9 +35,7 @@ ClassImp(Ali_MC_particle);
 ClassImp(Ali_TRD_ST_TPC_Track);
 ClassImp(Ali_TRD_ST_Event);
 
-using namespace std;
-
-static vector<vector<vector<vector<Double_t> > > > vec_connected_clusters;  // i_det i_trkl i_point i_xyz
+static std::vector<std::vector<std::vector<std::vector<Double_t>>>> vec_connected_clusters;  // i_det i_trkl i_point i_xyz
 
 class Ali_make_tracklets_from_digits : public AliAnalysisTaskSE {
    public:
@@ -83,16 +82,12 @@ class Ali_make_tracklets_from_digits : public AliAnalysisTaskSE {
           vec_TV3_TRD_center(),
           TV3_trkl_offset(),
           TV3_trkl_dir() {
-        cout << "" << endl;
-        cout << "***************************************************************************************" << endl;
-        cout << "In Ali_make_tracklets_from_digits.h constructor" << endl;
-        cout << "fDigitsInputFileName: " << fDigitsInputFileName << endl;
-        cout << "***************************************************************************************" << endl;
+        std::cout << "In Ali_make_tracklets_from_digits.h constructor" << std::endl;
+        std::cout << "fDigitsInputFileName: " << fDigitsInputFileName << std::endl;
         // AS_Event       = new Ali_AS_Event();
         // AS_Track       = new Ali_AS_Track();
-        cout << "" << endl;
     }
-    Ali_make_tracklets_from_digits(const char* name);
+    Ali_make_tracklets_from_digits(const Char_t* name);
     // virtual ~Ali_make_tracklets_from_digits() {}
 
     virtual void UserCreateOutputObjects();
@@ -107,10 +102,7 @@ class Ali_make_tracklets_from_digits : public AliAnalysisTaskSE {
 
     void SetDigitsInputFilename(TString x) {
         fDigitsInputFileName = x;
-        cout << "" << endl;
-        cout << "***************************************************************************************" << endl;
-        cout << "fDigitsInputFileName: " << fDigitsInputFileName << endl;
-        cout << "***************************************************************************************" << endl;
+        std::cout << "fDigitsInputFileName: " << fDigitsInputFileName << std::endl;
     }
     void SetDigitsOutputFilename(TString x) { fDigitsOutputFileName = x; }
 
@@ -164,10 +156,10 @@ class Ali_make_tracklets_from_digits : public AliAnalysisTaskSE {
 
     TVector3 TV3_SVD_tracklet_offset;
     TVector3 TV3_SVD_tracklet_dir;
-    vector<vector<vector<vector<Double_t> > > > vec_self_tracklet_fit_points;
-    vector<vector<vector<Double_t> > > vec_ADC_val;  //[i_det][i_trkl][i_timebin]
-    vector<TVector3> vec_TV3_TRD_center_offset;      // 540 chambers
-    vector<vector<TVector3> > vec_TV3_TRD_center;    // 540 chambers, 3 axes
+    std::vector<std::vector<std::vector<std::vector<Double_t>>>> vec_self_tracklet_fit_points;
+    std::vector<std::vector<std::vector<Double_t>>> vec_ADC_val;  //[i_det][i_trkl][i_timebin]
+    std::vector<TVector3> vec_TV3_TRD_center_offset;              // 540 chambers
+    std::vector<std::vector<TVector3>> vec_TV3_TRD_center;        // 540 chambers, 3 axes
     Float_t helix_par[9];
     Float_t helix_TRD_par[9];
     Double_t ADC_val[30];

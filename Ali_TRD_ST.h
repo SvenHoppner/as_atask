@@ -4,10 +4,10 @@
 #include "TClonesArray.h"
 #include "TObject.h"
 
-//----------------------------------------------------------------------------------------
+//________________________________________________________________________
 class Ali_MC_particle : public TObject {
    private:
-    TVector3 TV3_particle_vertex;  //
+    TVector3 TV3_particle_vertex;
     TLorentzVector TLV_particle;
     Int_t PDGcode;
     Int_t index_particle;
@@ -43,18 +43,17 @@ class Ali_MC_particle : public TObject {
 
     ClassDef(Ali_MC_particle, 1);
 };
-//----------------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------------
+//________________________________________________________________________
 class Ali_TRD_ST_Tracklets : public TObject {
    private:
-    TVector3 TV3_offset;  //
+    TVector3 TV3_offset;
     TVector3 TV3_dir;
     Int_t TRD_det;
-    Double_t ADC_val[30];  //
+    Double_t ADC_val[30];
     UShort_t TPC_match;
     Int_t n_tracklets_around;
-    Double_t min_dist_to_next_trkl;  //
+    Double_t min_dist_to_next_trkl;
     Int_t index;
 
    public:
@@ -88,13 +87,12 @@ class Ali_TRD_ST_Tracklets : public TObject {
 
     ClassDef(Ali_TRD_ST_Tracklets, 1);
 };
-//----------------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------------
+//________________________________________________________________________
 class Ali_TRD_ST_TOF_hit : public TObject {
    private:
-    TVector3 TV3_offset;  //
-    Float_t time;         //
+    TVector3 TV3_offset;
+    Float_t time;
 
    public:
     Ali_TRD_ST_TOF_hit() : TV3_offset(), time(0) {}
@@ -108,9 +106,8 @@ class Ali_TRD_ST_TOF_hit : public TObject {
 
     ClassDef(Ali_TRD_ST_TOF_hit, 1);
 };
-//----------------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------------
+//________________________________________________________________________
 class Ali_TRD_ST_TPC_Track : public TObject {
    private:
     // Track properties
@@ -210,9 +207,7 @@ class Ali_TRD_ST_TPC_Track : public TObject {
     }
 
     // getters
-
     Float_t getnsigma_e_TPC() const { return nsigma_e_TPC; }
-
     Float_t getnsigma_e_TOF() const { return nsigma_e_TOF; }
     Float_t getnsigma_pi_TPC() const { return nsigma_pi_TPC; }
     Float_t getnsigma_pi_TOF() const { return nsigma_pi_TOF; }
@@ -242,15 +237,12 @@ class Ali_TRD_ST_TPC_Track : public TObject {
 
     ClassDef(Ali_TRD_ST_TPC_Track, 1);  // A simple track of a particle
 };
-//----------------------------------------------------------------------------------------
 
 //________________________________________________________________________
 void Ali_TRD_ST_TPC_Track::Evaluate(Double_t t, Double_t r[3])  // radius vector
 {
-    //--------------------------------------------------------------------
     // Calculate position of a point on a track and some derivatives at given phase
-    //--------------------------------------------------------------------
-    float phase = aliHelix_params[4] * t + aliHelix_params[2];
+    Float_t phase = aliHelix_params[4] * t + aliHelix_params[2];
     Double_t sn = sinf(phase), cs = cosf(phase);
     //  Double_t sn=TMath::Sin(phase), cs=TMath::Cos(phase);
 
@@ -258,29 +250,28 @@ void Ali_TRD_ST_TPC_Track::Evaluate(Double_t t, Double_t r[3])  // radius vector
     r[1] = aliHelix_params[0] - cs / aliHelix_params[4];
     r[2] = aliHelix_params[1] + aliHelix_params[3] * t;
 }
-//________________________________________________________________________
 
-//----------------------------------------------------------------------------------------
+//________________________________________________________________________
 class Ali_TRD_ST_Event : public TObject {
    private:
-    Float_t x;                 // Event vertex x
-    Float_t y;                 // Event vertex y
-    Float_t z;                 // Event vertex z
-    Int_t id;                  // Run id
-    Int_t N_tracks;            // total number of tracks
-    Int_t N_TRD_tracklets;     // total number of TRD tracklets
-    Float_t cent_class_ZNA;    // ZDC neutral A
-    Float_t cent_class_ZNC;    // ZDC neutral C
-    Float_t cent_class_V0A;    // V0 A
-    Float_t cent_class_V0C;    // V0 C
-    Float_t cent_class_V0M;    // V0 average
-    Float_t cent_class_CL0;    // clusters in layer 0
-    Float_t cent_class_CL1;    // clusters in layer 1
-    Float_t cent_class_SPD;    // SPD
-    Float_t cent_class_V0MEq;  //
-    Float_t cent_class_V0AEq;  //
-    Float_t cent_class_V0CEq;  //
-    Short_t flag_Data_MC;      // 0 = data, 1 = MC
+    Float_t x;               // Event vertex x
+    Float_t y;               // Event vertex y
+    Float_t z;               // Event vertex z
+    Int_t id;                // Run id
+    Int_t N_tracks;          // total number of tracks
+    Int_t N_TRD_tracklets;   // total number of TRD tracklets
+    Float_t cent_class_ZNA;  // ZDC neutral A
+    Float_t cent_class_ZNC;  // ZDC neutral C
+    Float_t cent_class_V0A;  // V0 A
+    Float_t cent_class_V0C;  // V0 C
+    Float_t cent_class_V0M;  // V0 average
+    Float_t cent_class_CL0;  // clusters in layer 0
+    Float_t cent_class_CL1;  // clusters in layer 1
+    Float_t cent_class_SPD;  // SPD
+    Float_t cent_class_V0MEq;
+    Float_t cent_class_V0AEq;
+    Float_t cent_class_V0CEq;
+    Short_t flag_Data_MC;  // 0 = data, 1 = MC
 
     Float_t BeamIntAA;  // ZDC coincidence rate
     Float_t T0zVertex;  // z-vertex position from VPD
@@ -293,10 +284,10 @@ class Ali_TRD_ST_Event : public TObject {
     Int_t fNumMCparticles;  // number of MC particles
     Int_t fNumTOFhits;      // number of TOF hits
 
-    TClonesArray* fTracks;       //->
-    TClonesArray* fTracklets;    //->
-    TClonesArray* fMCparticles;  //->
-    TClonesArray* fTOFhits;      //->
+    TClonesArray* fTracks;
+    TClonesArray* fTracklets;
+    TClonesArray* fMCparticles;
+    TClonesArray* fTOFhits;
 
    public:
     Ali_TRD_ST_Event()
@@ -411,7 +402,6 @@ class Ali_TRD_ST_Event : public TObject {
     void setN_TRD_time_bins(UShort_t s) { N_TRD_time_bins = s; }
     Float_t getN_TRD_time_bins() const { return N_TRD_time_bins; }
 
-    //----------------------------
     Ali_TRD_ST_TPC_Track* createTrack() {
         if (fNumTracks == fTracks->GetSize()) fTracks->Expand(fNumTracks + 10);
         if (fNumTracks >= 65000) {
@@ -429,9 +419,7 @@ class Ali_TRD_ST_Event : public TObject {
     }
     UShort_t getNumTracks() const { return fNumTracks; }
     Ali_TRD_ST_TPC_Track* getTrack(UShort_t i) const { return i < fNumTracks ? (Ali_TRD_ST_TPC_Track*)((*fTracks)[i]) : NULL; }
-    //----------------------------
 
-    //----------------------------
     Ali_TRD_ST_Tracklets* createTracklet()  // online tracklet
     {
         if (fNumTracklets == fTracklets->GetSize()) fTracklets->Expand(fNumTracklets + 10);
@@ -449,9 +437,7 @@ class Ali_TRD_ST_Event : public TObject {
     }
     Int_t getNumTracklets() const { return fNumTracklets; }
     Ali_TRD_ST_Tracklets* getTracklet(Int_t i) const { return i < fNumTracklets ? (Ali_TRD_ST_Tracklets*)((*fTracklets)[i]) : NULL; }
-    //----------------------------
 
-    //----------------------------
     Ali_TRD_ST_TOF_hit* createTOFhit()  // online tracklet
     {
         if (fNumTOFhits == fTOFhits->GetSize()) fTOFhits->Expand(fNumTOFhits + 10);
@@ -469,9 +455,7 @@ class Ali_TRD_ST_Event : public TObject {
     }
     Int_t getNumTOFhits() const { return fNumTOFhits; }
     Ali_TRD_ST_TOF_hit* getTOFhit(Int_t i) const { return i < fNumTOFhits ? (Ali_TRD_ST_TOF_hit*)((*fTOFhits)[i]) : NULL; }
-    //----------------------------
 
-    //----------------------------
     Ali_MC_particle* createMCparticle()  // Monte Carlo particle
     {
         if (fNumMCparticles == fMCparticles->GetSize()) fMCparticles->Expand(fNumMCparticles + 10);
@@ -489,13 +473,11 @@ class Ali_TRD_ST_Event : public TObject {
     }
     Int_t getMCparticles() const { return fNumMCparticles; }
     Ali_MC_particle* getMCparticle(Int_t i) const { return i < fNumMCparticles ? (Ali_MC_particle*)((*fMCparticles)[i]) : NULL; }
-    //----------------------------
 
     ClassDef(Ali_TRD_ST_Event, 1);  // A simple event compiled of tracks
 };
-//----------------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------------
+//________________________________________________________________________
 class Ali_Helix : public TObject {
    private:
     Float_t aliHelix_params[6];
@@ -520,15 +502,12 @@ class Ali_Helix : public TObject {
 
     ClassDef(Ali_Helix, 1);
 };
-//----------------------------------------------------------------------------------------
 
 //________________________________________________________________________
 void Ali_Helix::Evaluate(Double_t t, Double_t r[3])  // radius vector
 {
-    //--------------------------------------------------------------------
     // Calculate position of a point on a track and some derivatives at given phase
-    //--------------------------------------------------------------------
-    float phase = aliHelix_params[4] * t + aliHelix_params[2];
+    Float_t phase = aliHelix_params[4] * t + aliHelix_params[2];
     Double_t sn = sinf(phase), cs = cosf(phase);
     //  Double_t sn=TMath::Sin(phase), cs=TMath::Cos(phase);
 
@@ -536,6 +515,5 @@ void Ali_Helix::Evaluate(Double_t t, Double_t r[3])  // radius vector
     r[1] = aliHelix_params[0] - cs / aliHelix_params[4];
     r[2] = aliHelix_params[1] + aliHelix_params[3] * t;
 }
-//________________________________________________________________________
 
-#endif  // __ALI_TRD_ST_H__
+#endif

@@ -6,7 +6,6 @@
 #include "TObject.h"
 #include "TVector3.h"
 
-//----------------------------------------------------------------------------------------
 class Ali_AS_TRD_digit : public TObject {
    private:
     // Digit data
@@ -43,7 +42,7 @@ class Ali_AS_TRD_digit : public TObject {
     void setADC_time_value(Int_t time_bin, Short_t ADC_value) { ADC_time_values[time_bin] = ADC_value; }
     void set_pos(Int_t time_bin, Float_t x_pos, Float_t y_pos,
                  Float_t z_pos)  //{arr_pos[0][time_bin] = (Short_t)(100.0*x_pos); arr_pos[1][time_bin] = (Short_t)(100.0*y_pos);
-                                 //arr_pos[2][time_bin] = (Short_t)(100.0*z_pos);}
+                                 // arr_pos[2][time_bin] = (Short_t)(100.0*z_pos);}
     {
         // Subtract a vector of length 200 cm from digit positions to reduce the range. Usually ~300-360 cm, now 100-160 cm.
         // This is important to not get out of Short_t range: 8 byte: 2^16/2 = 32768. 360*100 > 32768
@@ -61,12 +60,12 @@ class Ali_AS_TRD_digit : public TObject {
             arr_pos[2][time_bin] = 0.0;
         }
 
-        // cout << "x_pos: " << x_pos << endl;
-        // cout << "y_pos: " << y_pos << endl;
-        // cout << "z_pos: " << z_pos << endl;
-        // cout << "x_pos-200: " << arr_pos[0][time_bin] << endl;
-        // cout << "y_pos-200: " << arr_pos[1][time_bin] << endl;
-        // cout << "z_pos-200: " << arr_pos[2][time_bin] << endl;
+        // std::cout << "x_pos: " << x_pos << std::endl;
+        // std::cout << "y_pos: " << y_pos << std::endl;
+        // std::cout << "z_pos: " << z_pos << std::endl;
+        // std::cout << "x_pos-200: " << arr_pos[0][time_bin] << std::endl;
+        // std::cout << "y_pos-200: " << arr_pos[1][time_bin] << std::endl;
+        // std::cout << "z_pos-200: " << arr_pos[2][time_bin] << std::endl;
     }
 
     // void set_pos_uncalib(Int_t time_bin, Float_t x_pos_uncalib, Float_t y_pos_uncalib, Float_t z_pos_uncalib)  {
@@ -115,11 +114,9 @@ class Ali_AS_TRD_digit : public TObject {
 
     Int_t get_detector(Int_t layer, Int_t stack, Int_t sector) const { return (layer + stack * 6 + sector * 6 * 5); }
 
-    ClassDef(Ali_AS_TRD_digit, 1);  //
+    ClassDef(Ali_AS_TRD_digit, 1);
 };
-//----------------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------------
 class Ali_AS_offline_Tracklet : public TObject {
    private:
     // Tracklet properties
@@ -190,9 +187,7 @@ class Ali_AS_offline_Tracklet : public TObject {
 
     ClassDef(Ali_AS_offline_Tracklet, 1);  // A simple track of a particle
 };
-//----------------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------------
 class Ali_AS_Track : public TObject {
    private:
     // Track properties
@@ -225,8 +220,8 @@ class Ali_AS_Track : public TObject {
     UShort_t fNumTRDdigits;         // number of TRD digits for this track
     UShort_t fNumOfflineTracklets;  // number of offline tracklets
 
-    TClonesArray* fTRD_digits;        //->
-    TClonesArray* fOfflineTracklets;  //->
+    TClonesArray* fTRD_digits;
+    TClonesArray* fOfflineTracklets;
 
    public:
     Ali_AS_Track()
@@ -369,7 +364,7 @@ class Ali_AS_Track : public TObject {
     }
 
     Int_t HasITShit_on_layer(Int_t ilayer) {
-        // ITShit -> LOL
+        // ITShit
         return ((NITScls >> ilayer) & 1);
     }
 
@@ -418,7 +413,6 @@ class Ali_AS_Track : public TObject {
     ClassDef(Ali_AS_Track, 1);  // A simple track of a particle
 };
 
-//----------------------------------------------------------------------------------------
 class Ali_AS_Tracklet : public TObject {
    private:
     // Tracklet properties
@@ -445,29 +439,27 @@ class Ali_AS_Tracklet : public TObject {
 
     ClassDef(Ali_AS_Tracklet, 1);  // A simple track of a particle
 };
-//----------------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------------
 class Ali_AS_Event : public TObject {
    private:
     Int_t eventNumber;
-    Float_t x;                 // Event vertex x
-    Float_t y;                 // Event vertex y
-    Float_t z;                 // Event vertex z
-    Int_t id;                  // Run id
-    Int_t N_tracks;            // total number of tracks
-    Int_t N_TRD_tracklets;     // total number of TRD tracklets
-    Float_t cent_class_ZNA;    // ZDC neutral A
-    Float_t cent_class_ZNC;    // ZDC neutral C
-    Float_t cent_class_V0A;    // V0 A
-    Float_t cent_class_V0C;    // V0 C
-    Float_t cent_class_V0M;    // V0 average
-    Float_t cent_class_CL0;    // clusters in layer 0
-    Float_t cent_class_CL1;    // clusters in layer 1
-    Float_t cent_class_SPD;    // SPD
-    Float_t cent_class_V0MEq;  //
-    Float_t cent_class_V0AEq;  //
-    Float_t cent_class_V0CEq;  //
+    Float_t x;               // Event vertex x
+    Float_t y;               // Event vertex y
+    Float_t z;               // Event vertex z
+    Int_t id;                // Run id
+    Int_t N_tracks;          // total number of tracks
+    Int_t N_TRD_tracklets;   // total number of TRD tracklets
+    Float_t cent_class_ZNA;  // ZDC neutral A
+    Float_t cent_class_ZNC;  // ZDC neutral C
+    Float_t cent_class_V0A;  // V0 A
+    Float_t cent_class_V0C;  // V0 C
+    Float_t cent_class_V0M;  // V0 average
+    Float_t cent_class_CL0;  // clusters in layer 0
+    Float_t cent_class_CL1;  // clusters in layer 1
+    Float_t cent_class_SPD;  // SPD
+    Float_t cent_class_V0MEq;
+    Float_t cent_class_V0AEq;
+    Float_t cent_class_V0CEq;
     Float_t ADC_sum_det[540];
 
     Float_t BeamIntAA;  // ZDC coincidence rate
@@ -479,9 +471,9 @@ class Ali_AS_Event : public TObject {
     Int_t fNumTracklets;  // number of tracks in event
     Int_t fNumTRDdigits;  // number of TRD digits for this track
 
-    TClonesArray* fTracks;      //->
-    TClonesArray* fTracklets;   //->
-    TClonesArray* fTRD_digits;  //->
+    TClonesArray* fTracks;
+    TClonesArray* fTracklets;
+    TClonesArray* fTRD_digits;
 
    public:
     Ali_AS_Event()
@@ -594,7 +586,6 @@ class Ali_AS_Event : public TObject {
     void setADC_sum_det(Int_t i_det, Float_t r) { ADC_sum_det[i_det] = r; }
     ULong64_t getADC_sum_det(Int_t i_det) const { return ADC_sum_det[i_det]; }
 
-    //----------------------------
     Ali_AS_Track* createTrack() {
         if (fNumTracks == fTracks->GetSize()) fTracks->Expand(fNumTracks + 10);
         if (fNumTracks >= 50000) {

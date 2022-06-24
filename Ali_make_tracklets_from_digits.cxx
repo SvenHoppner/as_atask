@@ -1,85 +1,64 @@
-#include "TChain.h"
-#include "TFile.h"
-#include "TTree.h"
-
-//------------------------
-#include "AliHelix.h"
-#include "TLorentzVector.h"
-#include "TSystem.h"
-//------------------------
-
-#include "AliAnalysisManager.h"
-#include "AliAnalysisTask.h"
-
-#include "AliESDEvent.h"
-#include "AliESDInputHandler.h"
-#include "AliInputEventHandler.h"
-
-#include "AliMCEvent.h"
-#include "AliMCEventHandler.h"
-
-#include "AliKalmanTrack.h"
-
-#include "AliESDfriend.h"
-#include "AliTRDpadPlane.h"
-#include "AliTRDseedV1.h"
-#include "AliTRDtrackV1.h"
-
-#include "AliTRDarrayADC.h"
-#include "AliTRDdigitsManager.h"
-
-#include "AliPID.h"
-#include "AliPIDResponse.h"
-
-#include "AliESDtrackCuts.h"
-
-#include "AliCentrality.h"
-#include "AliESDRun.h"
-#include "AliESDVertex.h"
-
-#include "AliMultSelection.h"
-
-#include "AliAlignObjParams.h"
-#include "AliCDBEntry.h"
-#include "TClonesArray.h"
-#include "TGeoMatrix.h"
-
-#include "AliRunTag.h"
-#include "AliTRDdigitsParam.h"
-#include "TObjString.h"
-
-#include "AliAODMCParticle.h"
-#include "AliCDBManager.h"
-#include "AliCDBStorage.h"
-#include "AliMCEvent.h"
-#include "AliTRDCalDet.h"
-#include "AliTRDCalOnlineGainTable.h"
-#include "AliTRDCalPad.h"
-#include "AliTRDCalROC.h"
-#include "TPolyMarker.h"
-
-#include "AliTRDCommonParam.h"
-
-#include "AliESDTrdTracklet.h"
-#include "TGraph.h"
-#include "TProfile.h"
-
-#include "AliESDTOFCluster.h"
-
-//------------------------
-#include <dirent.h>
-#include <errno.h>
+#include <iomanip>
 #include <iostream>
 #include <string>
 #include <sys/types.h>
 #include <vector>
-//------------------------
+
+#include "AliAlignObjParams.h"
+#include "AliAnalysisManager.h"
+#include "AliAnalysisTask.h"
+#include "AliCentrality.h"
+#include "AliHelix.h"
+#include "AliInputEventHandler.h"
+#include "AliKalmanTrack.h"
+#include "AliMultSelection.h"
+#include "AliPID.h"
+#include "AliPIDResponse.h"
+#include "AliRunTag.h"
+
+#include "AliAODMCParticle.h"
+#include "AliMCEvent.h"
+#include "AliMCEventHandler.h"
+
+#include "AliCDBEntry.h"
+#include "AliCDBManager.h"
+#include "AliCDBStorage.h"
+
+#include "AliTRDCalDet.h"
+#include "AliTRDCalOnlineGainTable.h"
+#include "AliTRDCalPad.h"
+#include "AliTRDCalROC.h"
+#include "AliTRDCommonParam.h"
+#include "AliTRDarrayADC.h"
+#include "AliTRDdigitsManager.h"
+#include "AliTRDdigitsParam.h"
+#include "AliTRDpadPlane.h"
+#include "AliTRDseedV1.h"
+#include "AliTRDtrackV1.h"
+
+#include "AliESDEvent.h"
+#include "AliESDInputHandler.h"
+#include "AliESDRun.h"
+#include "AliESDTOFCluster.h"
+#include "AliESDTrdTracklet.h"
+#include "AliESDVertex.h"
+#include "AliESDfriend.h"
+#include "AliESDtrackCuts.h"
+
+#include "TChain.h"
+#include "TClonesArray.h"
+#include "TFile.h"
+#include "TGeoMatrix.h"
+#include "TGraph.h"
+#include "TLorentzVector.h"
+#include "TObjString.h"
+#include "TPolyMarker.h"
+#include "TProfile.h"
+#include "TSystem.h"
+#include "TTree.h"
+#include "TString.h"
 
 #include "Ali_make_tracklets_from_digits.h"
-
-#include <iomanip>
-#include <iostream>
-using namespace std;
 
 static Int_t flag_plot_event = 0;
 static TString HistName;
@@ -107,19 +86,21 @@ static AliTRDCalROC* LocalT0;  //  Pad wise T0 calibration object
 static const Int_t N_pT_bins = 5;
 static const Double_t pT_ranges[N_pT_bins + 1] = {0.2, 0.5, 1.0, 2.0, 3.0, 5.0};
 static const Double_t TRD_Impact_distance_in_drift = 3.35;
-static const char* pathdatabase = "alien://folder=/alice/data/2018/OCDB";
+static const Char_t* pathdatabase = "alien://folder=/alice/data/2018/OCDB";
 
 static AliTRDCommonParam* fParam;
 static AliESDfriend* esdFr = NULL;
 static AliESDInputHandler* esdH = NULL;
 static TString esdFriendTreeFName;
-// static Class_peak_finder my_class_peak_finder;
 
-ClassImp(Ali_AS_Event) ClassImp(Ali_AS_Track) ClassImp(Ali_AS_Tracklet) ClassImp(Ali_AS_offline_Tracklet) ClassImp(Ali_AS_TRD_digit)
-    ClassImp(Ali_make_tracklets_from_digits)
+ClassImp(Ali_AS_Event);
+ClassImp(Ali_AS_Track);
+ClassImp(Ali_AS_Tracklet);
+ClassImp(Ali_AS_offline_Tracklet);
+ClassImp(Ali_AS_TRD_digit);
+ClassImp(Ali_make_tracklets_from_digits);
 
-    //----------------------------------------------------------------------------------------
-    TVector3 intersect_line_plane(TVector3 TV3_base_line, TVector3 TV3_dir_line, TVector3 TV3_base_plane, TVector3 TV3_norm_plane) {
+TVector3 intersect_line_plane(TVector3 TV3_base_line, TVector3 TV3_dir_line, TVector3 TV3_base_plane, TVector3 TV3_norm_plane) {
 
     TVector3 TV3_base_diff = TV3_base_plane - TV3_base_line;
     Double_t TV3_norm_dir_mult = TV3_dir_line.Dot(TV3_norm_plane);
@@ -131,18 +112,15 @@ ClassImp(Ali_AS_Event) ClassImp(Ali_AS_Track) ClassImp(Ali_AS_Tracklet) ClassImp
 
     return intersect_point;
 }
-//----------------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------------
 // Driver function to sort the 2D vector
 // on basis of a particular column
-bool sortcol_first(const vector<Double_t>& v1, const vector<Double_t>& v2) {
+Bool_t sortcol_first(const std::vector<Double_t>& v1, const std::vector<Double_t>& v2) {
     return v1[3] > v2[3];  // second column
 }
-//----------------------------------------------------------------------------------------
 
 //________________________________________________________________________
-Ali_make_tracklets_from_digits::Ali_make_tracklets_from_digits(const char* name)
+Ali_make_tracklets_from_digits::Ali_make_tracklets_from_digits(const Char_t* name)
     : AliAnalysisTaskSE(name),
       fLocalMode(kFALSE),
       // fDigitsInputFileName("TRD.FltDigits.root"),
@@ -201,12 +179,12 @@ TFile* Ali_make_tracklets_from_digits::OpenDigitsFile(TString inputfile, TString
     // we should check if we are reading ESDs or AODs - for now, only
     // ESDs are supported
 
-    cout << "" << endl;
-    cout << "In OpenDigitsFile" << endl;
-    // cout << "Digits file name: " << digfile.Data() << endl;
+    std::cout << "" << std::endl;
+    std::cout << "In OpenDigitsFile" << std::endl;
+    // std::cout << "Digits file name: " << digfile.Data() << std::endl;
 
     if (digfile == "") {
-        cout << "WARNING: No TRD digits file available" << endl;
+        std::cout << "WARNING: No TRD digits file available" << std::endl;
         return NULL;
     }
 
@@ -219,12 +197,12 @@ TFile* Ali_make_tracklets_from_digits::OpenDigitsFile(TString inputfile, TString
     // open the file
     AliInfo("opening digits file " + inputfile_LF + " with option \"" + opt + "\"");
 
-    cout << "inputfile: " << inputfile_LF.Data() << endl;
+    std::cout << "inputfile: " << inputfile_LF.Data() << std::endl;
     // TFile* dfile = new TFile(inputfile_LF, opt);
     // if(dfile) delete dfile;
     dfile = TFile::Open(inputfile_LF);
-    cout << "After TRD digits file" << endl;
-    cout << "" << endl;
+    std::cout << "After TRD digits file" << std::endl;
+    std::cout << "" << std::endl;
 
     if (!dfile) {
         AliWarning("digits file '" + inputfile + "' cannot be opened");
@@ -235,13 +213,12 @@ TFile* Ali_make_tracklets_from_digits::OpenDigitsFile(TString inputfile, TString
 
 //_______________________________________________________________________
 Bool_t Ali_make_tracklets_from_digits::UserNotify() {
-    cout << "" << endl;
-    cout << "In UserNotify" << endl;
-    cout << "fDigitsInputFileName: " << fDigitsInputFileName.Data() << endl;
+    std::cout << "" << std::endl;
+    std::cout << "In UserNotify" << std::endl;
+    std::cout << "fDigitsInputFileName: " << fDigitsInputFileName.Data() << std::endl;
 
     if (!EsdTrackCuts) EsdTrackCuts = new AliESDtrackCuts();
 
-    //-------------------------
     // From Ruben 11.03.2021
     auto man = AliCDBManager::Instance();
     man->SetDefaultStorage("local:///cvmfs/alice-ocdb.cern.ch/calibration/data/2016/OCDB");
@@ -251,7 +228,6 @@ Bool_t Ali_make_tracklets_from_digits::UserNotify() {
     if (!fGeo) fGeo = new AliTRDgeometry();
     AliGeomManager::ApplyAlignObjsFromCDB("TOF");
     if (!fGeo_TOF) fGeo_TOF = new AliTOFGeometry();
-    //-------------------------
 
     // if(!fGeo) fGeo = new AliTRDgeometry;
     if (!fDigMan) {
@@ -262,16 +238,16 @@ Bool_t Ali_make_tracklets_from_digits::UserNotify() {
     if (!h_v_fit_vs_det) h_v_fit_vs_det = new TH1D("h_v_fit_vs_det", "h_v_fit_vs_det", 540, 0, 540);
     if (!h_LA_factor_fit_vs_det) h_LA_factor_fit_vs_det = new TH1D("h_LA_factor_fit_vs_det", "h_LA_factor_fit_vs_det", 540, 0, 540);
 
-    cout << "Connected to GRID" << endl;
+    std::cout << "Connected to GRID" << std::endl;
 
     fParam = AliTRDCommonParam::Instance();
 
     delete fDigitsInputFile;
     delete fDigitsOutputFile;
 
-    cout << "Digits file pointers deleted" << endl;
+    std::cout << "Digits file pointers deleted" << std::endl;
 
-    cout << "All pointers deleted" << endl;
+    std::cout << "All pointers deleted" << std::endl;
 
     // AliESDInputHandler *esdH = dynamic_cast<AliESDInputHandler*>
     //     (AliAnalysisManager::GetAnalysisManager()->GetInputEventHandler());
@@ -282,36 +258,34 @@ Bool_t Ali_make_tracklets_from_digits::UserNotify() {
     if (!esdH->GetTree()) return kFALSE;
     if (!esdH->GetTree()->GetCurrentFile()) return kFALSE;
 
-    //-----------------------------------
     TList* list = esdH->GetUserInfo();
     // list->Print();
     // list->Dump();
 
-    // cout << "List: " << endl;
+    // std::cout << "List: " << std::endl;
     // list->ls();
     TList* list_cdblist = (TList*)list->FindObject("cdbList");  // list contains paths of calibration data
     Int_t list_size = list_cdblist->Capacity();
-    // cout << "cdblist, with size: " << list_size <<  endl;
+    // std::cout << "cdblist, with size: " << list_size <<  endl;
     // list_cdblist->ls();
     TObjString* obj_string = (TObjString*)list_cdblist->At(15);  // 0
     TString string = obj_string->GetString();
-    // cout << "String: " << string.Data() << endl;
+    // std::cout << "String: " << string.Data() << std::endl;
     Int_t index_A = string.Index("[");
     string.Remove(0, index_A + 1);
-    // cout << "String: " << string.Data() << endl;
+    // std::cout << "String: " << string.Data() << std::endl;
     Int_t index_B = string.Index(",");
     string.Remove(index_B, string.Sizeof());
     Int_t run_number_from_list = string.Atoi();
-    cout << "String: " << string.Data() << ", run_number_from_list: " << run_number_from_list << endl;
-    //-----------------------------------
+    std::cout << "String: " << string.Data() << ", run_number_from_list: " << run_number_from_list << std::endl;
 
     AliCDBManager* CDBman = AliCDBManager::Instance();
     if (!CDBman->IsDefaultStorageSet()) {
         if (fLocalMode) {
-            cout << "Running in local mode" << endl;
+            std::cout << "Running in local mode" << std::endl;
             CDBman->SetDefaultStorage("local:///cvmfs/alice-ocdb.cern.ch/calibration/data/2016/OCDB");
         } else {
-            cout << "Open connection to GRID" << endl;
+            std::cout << "Open connection to GRID" << std::endl;
             TGrid::Connect("alien");
             CDBman->SetDefaultStorage("raw://");
         }
@@ -319,100 +293,83 @@ Bool_t Ali_make_tracklets_from_digits::UserNotify() {
     }
 
     // AliCDBEntry->GetObject()->IsA()->GetName()
-    //-----------------------------------
     // Pad noise
-    cout << "Open pad noise calibration file from database" << endl;
+    std::cout << "Open pad noise calibration file from database" << std::endl;
     AliCDBEntry* entryB = CDBman->Get("TRD/Calib/PadNoise", run_number_from_list);  // new
     PadNoise = (AliTRDCalPad*)entryB->GetObject();
-    cout << "Calibration data opened" << endl;
-    //-----------------------------------
+    std::cout << "Calibration data opened" << std::endl;
 
-    //-----------------------------------
     // ChamberVdrift
-    cout << "Open ChamberVdrift calibration file from database" << endl;
+    std::cout << "Open ChamberVdrift calibration file from database" << std::endl;
     AliCDBEntry* entryC = CDBman->Get("TRD/Calib/ChamberVdrift", run_number_from_list);  // new
     ChamberVdrift = (AliTRDCalDet*)entryC->GetObject();
-    cout << "Calibration data opened" << endl;
+    std::cout << "Calibration data opened" << std::endl;
     // for(Int_t i_det = 0; i_det < 540; i_det++)
     //{
-    //     cout << "i_det: " << i_det << ", chamber vdrift: " << ChamberVdrift->GetValue(i_det) << endl;
+    //     std::cout << "i_det: " << i_det << ", chamber vdrift: " << ChamberVdrift->GetValue(i_det) << std::endl;
     // }
-    //-----------------------------------
 
-    //-----------------------------------
     // ChamberT0
-    cout << "Open ChamberT0 calibration file from database" << endl;
+    std::cout << "Open ChamberT0 calibration file from database" << std::endl;
     AliCDBEntry* entryC1 = CDBman->Get("TRD/Calib/ChamberT0", run_number_from_list);
     ChamberT0 = (AliTRDCalDet*)entryC1->GetObject();
-    cout << "Calibration data opened" << endl;
+    std::cout << "Calibration data opened" << std::endl;
     // for(Int_t i_det = 0; i_det < 540; i_det++)
     //{
-    //     cout << "i_det: " << i_det << ", chamber t0: " << ChamberT0->GetValue(i_det) << endl; // in the order of "-1.36613"
+    //     std::cout << "i_det: " << i_det << ", chamber t0: " << ChamberT0->GetValue(i_det) << std::endl; // in the order of "-1.36613"
     // }
-    //-----------------------------------
 
-    //-----------------------------------
     // LocalT0
-    // cout << "Open LocalT0 calibration file from database" << endl;
+    // std::cout << "Open LocalT0 calibration file from database" << std::endl;
     // AliCDBEntry *entryC2 = AliCDBManager::Instance()->GetStorage(pathdatabase)->Get("TRD/Calib/LocalT0",run_number_from_list);
     // LocalT0_pad = (AliTRDCalPad*)entryC2->GetObject();
-    // cout << "Calibration data opened" << endl;
+    // std::cout << "Calibration data opened" << std::endl;
     // for(Int_t i_det = 0; i_det < 540; i_det++)
     //{
     //    Int_t col = 2;
     //    Int_t row = 2;
-    //    cout << "i_det: " << i_det << ", local t0: " << LocalT0_pad->GetCalROC(i_det)->GetValue(col,row) << endl; // returns 0
+    //    std::cout << "i_det: " << i_det << ", local t0: " << LocalT0_pad->GetCalROC(i_det)->GetValue(col,row) << std::endl; // returns 0
     //}
-    //-----------------------------------
 
 #if 0
-    //-----------------------------------
     // LocalVdrift
     // Values are all 0
-    cout << "Open LocalVdrift calibration file from database" << endl;
+    std::cout << "Open LocalVdrift calibration file from database" << std::endl;
     AliCDBEntry *entryD = AliCDBManager::Instance()->GetStorage(pathdatabase)->Get("TRD/Calib/LocalVdrift",run_number_from_list);
     AliTRDCalDet *LocalVdrift = (AliTRDCalDet*)entryD->GetObject();
-    cout << "Calibration data opened" << endl;
+    std::cout << "Calibration data opened" << std::endl;
     //for(Int_t i_det = 0; i_det < 540; i_det++)
     //{
-    //    cout << "i_det: " << i_det << ", local vdrift: " << LocalVdrift->GetValue(i_det) << endl;
+    //    std::cout << "i_det: " << i_det << ", local vdrift: " << LocalVdrift->GetValue(i_det) << std::endl;
     //}
-    //-----------------------------------
 #endif
 
-    //-----------------------------------
     // ChamberExB
     // Values are all 0
-    // cout << "Open ChamberExB calibration file from database" << endl;
+    // std::cout << "Open ChamberExB calibration file from database" << std::endl;
     // AliCDBEntry *entryE = AliCDBManager::Instance()->GetStorage(pathdatabase)->Get("TRD/Calib/ChamberExB",run_number_from_list);
     // ChamberExB = (AliTRDCalDet*)entryE->GetObject();
-    // cout << "Calibration data opened" << endl;
+    // std::cout << "Calibration data opened" << std::endl;
     // for(Int_t i_det = 0; i_det < 540; i_det++)
     //{
-    //    cout << "i_det: " << i_det << ", ExB: " << ChamberExB->GetValue(i_det) << endl;
+    //    std::cout << "i_det: " << i_det << ", ExB: " << ChamberExB->GetValue(i_det) << std::endl;
     //}
-    //-----------------------------------
 
-    //----------------------------------------------------------------------
     // XALEX comment after test
     // Krypton calibration -> pad gain factors
-    cout << "Open Krypto calibration file from database" << endl;
+    std::cout << "Open Krypto calibration file from database" << std::endl;
     AliCDBEntry* entryF = AliCDBManager::Instance()->GetStorage(pathdatabase)->Get("TRD/Calib/Krypton_2015-02", run_number_from_list);
     KryptoGain = (AliTRDCalOnlineGainTable*)entryF->GetObject();
-    cout << "Calibration data opened" << endl;
+    std::cout << "Calibration data opened" << std::endl;
     // Float_t GainFactor = KryptoGain ->GetGainCorrectionFactor(i_det,i_row,i_column);
-    //----------------------------------------------------------------------
 
-    //----------------------------------------------------------------------
     // XALEX comment after test
     // Chamber gain factors
-    cout << "Open chamber gain file from database" << endl;
+    std::cout << "Open chamber gain file from database" << std::endl;
     AliCDBEntry* entryG = AliCDBManager::Instance()->GetStorage(pathdatabase)->Get("TRD/Calib/ChamberGainFactor", run_number_from_list);
     chambergain = (AliTRDCalDet*)entryG->GetObject();
     // Float_t valuegainiteration = chambergain->GetValue(det);
-    //----------------------------------------------------------------------
 
-    //----------------------------------------------------------------------
     // XALEX comment after test
     printf("Load calibration \n");
     AliTRDcalibDB* const calibration = AliTRDcalibDB::Instance();
@@ -421,20 +378,19 @@ Bool_t Ali_make_tracklets_from_digits::UserNotify() {
         return kFALSE;
     }
     printf("Run from calibration: %d \n", (int)calibration->GetRun());
-    //----------------------------------------------------------------------
 
     // TObjString* ts = (TObjString*)list->FindObject("TRD/Calib/ChamberGainFactor");
     // TString string = ts->GetString();
-    // cout << "string: " << string.Data() << endl;
+    // std::cout << "string: " << string.Data() << std::endl;
 
     TString fname = esdH->GetTree()->GetCurrentFile()->GetName();
     TString Tree_name = esdH->GetTree()->GetName();
     FileStat_t file_stat;
     Int_t PathInfo = gSystem->GetPathInfo(fname.Data(), file_stat);
-    cout << "PathInfo: " << PathInfo << ", fname: " << fname << endl;
+    std::cout << "PathInfo: " << PathInfo << ", fname: " << fname << std::endl;
     // TFile* file = TFile::Open(fname.Data());
-    // cout << "Zombie: " << file->IsZombie() << ", header size: " << file->Sizeof() << ", FileBytesRead: " << file->GetFileBytesRead() <<
-    // endl;
+    // std::cout << "Zombie: " << file->IsZombie() << ", header size: " << file->Sizeof() << ", FileBytesRead: " << file->GetFileBytesRead()
+    // << endl;
 
     AliInputEventHandler* inputHandler =
         dynamic_cast<AliInputEventHandler*>(AliAnalysisManager::GetAnalysisManager()->GetInputEventHandler());
@@ -445,12 +401,12 @@ Bool_t Ali_make_tracklets_from_digits::UserNotify() {
 
         fPIDResponse = inputHandler->GetPIDResponse();
 
-        cout << "Got PID response" << endl;
+        std::cout << "Got PID response" << std::endl;
     }
 
     // AliAnalysisManager *manB = AliAnalysisManager::GetAnalysisManager();
     // Int_t run_id = manB->GetRunFromPath();
-    // cout << "fname: " << fname << ", tree name: " << Tree_name << ", run_id: " << run_id << endl;
+    // std::cout << "fname: " << fname << ", tree name: " << Tree_name << ", run_id: " << run_id << std::endl;
 
     fEventNoInFile = -1;
     // N_good_events  = 0;
@@ -469,11 +425,11 @@ Bool_t Ali_make_tracklets_from_digits::UserNotify() {
     TString dirname = gSystem->DirName(esdFriendTreeFName);
     dirname += "/";
     esdFriendTreeFName = dirname + basename;
-    cout << "Friend name: " << esdFriendTreeFName.Data() << endl;
+    std::cout << "Friend name: " << esdFriendTreeFName.Data() << std::endl;
 #endif
 
-    cout << "Add EsdTrackCuts" << endl;
-    if (EsdTrackCuts) cout << "EsdTrackCuts exists" << endl;
+    std::cout << "Add EsdTrackCuts" << std::endl;
+    if (EsdTrackCuts) std::cout << "EsdTrackCuts exists" << std::endl;
     EsdTrackCuts->AliESDtrackCuts::SetRequireTPCRefit(kTRUE);
     EsdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.52);
     EsdTrackCuts->AliESDtrackCuts::SetMinNClustersTPC(50);  // 60, Automatically requires TPC refitted tracks?
@@ -483,11 +439,8 @@ Bool_t Ali_make_tracklets_from_digits::UserNotify() {
     EsdTrackCuts->AliESDtrackCuts::SetEtaRange(-1.0, 1.0);   // 0.85
 
     // create the digits manager
-    cout << "" << endl;
-    cout << "________________________________________________________________________" << endl;
-    cout << "Created AliTRDdigitsManager" << endl;
-    cout << "fDigitsInputFileName: " << fDigitsInputFileName.Data() << endl;
-    cout << "" << endl;
+    std::cout << "Created AliTRDdigitsManager" << std::endl;
+    std::cout << "fDigitsInputFileName: " << fDigitsInputFileName.Data() << std::endl;
 
     // create a TRD geometry, needed for matching digits to tracks
     if (!fGeo) {
@@ -499,10 +452,9 @@ Bool_t Ali_make_tracklets_from_digits::UserNotify() {
     // for(Int_t i_det = 0; i_det < 5; i_det++)
     //{
     //     Int_t N_columns   = fDigMan->GetDigits(i_det)->GetNcol();
-    //     cout << "i_det: " << i_det << ", N_columns: " << N_columns << endl;
+    //     std::cout << "i_det: " << i_det << ", N_columns: " << N_columns << std::endl;
     // }
 
-    //---------------------------------------
     // Load TRD geometry, created by Create_TRD_geometry_files.cc
     TFile* file_TRD_geom = fLocalMode ? TFile::Open("Data/TRD_geometry_full.root")
                                       : TFile::Open("alien::///alice/cern.ch/user/a/aschmah/Data/TRD_geometry_full.root");
@@ -513,7 +465,7 @@ Bool_t Ali_make_tracklets_from_digits::UserNotify() {
         vec_TV3_TRD_center[i_det].resize(3);
     }
 
-    vector<vector<TH1D*> > vec_TH1D_TV3_TRD_center;
+    std::vector<std::vector<TH1D*>> vec_TH1D_TV3_TRD_center;
     vec_TH1D_TV3_TRD_center.resize(3);  // x,y,z axes
     for (Int_t i_xyz = 0; i_xyz < 3; i_xyz++) {
         vec_TH1D_TV3_TRD_center[i_xyz].resize(3);  // vector direction
@@ -533,7 +485,7 @@ Bool_t Ali_make_tracklets_from_digits::UserNotify() {
         }
     }
 
-    vector<TH1D*> vec_TH1D_TV3_TRD_center_offset;
+    std::vector<TH1D*> vec_TH1D_TV3_TRD_center_offset;
     vec_TH1D_TV3_TRD_center_offset.resize(3);  // x,y,z axes
     for (Int_t i_xyz = 0; i_xyz < 3; i_xyz++) {
         HistName = "vec_TH1D_TV3_TRD_center_offset_";
@@ -545,8 +497,8 @@ Bool_t Ali_make_tracklets_from_digits::UserNotify() {
         }
     }
 
-    vector<vector<TH1D*> > vec_TH1D_TRD_geometry;  // store for all 540 chambers the 8 corner vertices per detector
-    vec_TH1D_TRD_geometry.resize(3);               // x,y,z
+    std::vector<std::vector<TH1D*>> vec_TH1D_TRD_geometry;  // store for all 540 chambers the 8 corner vertices per detector
+    vec_TH1D_TRD_geometry.resize(3);              // x,y,z
     for (Int_t i_xyz = 0; i_xyz < 3; i_xyz++) {
         vec_TH1D_TRD_geometry[i_xyz].resize(8);  // 8 vertices
         for (Int_t i_vertex = 0; i_vertex < 8; i_vertex++) {
@@ -557,27 +509,26 @@ Bool_t Ali_make_tracklets_from_digits::UserNotify() {
             vec_TH1D_TRD_geometry[i_xyz][i_vertex] = (TH1D*)file_TRD_geom->Get(HistName.Data());
         }
     }
-    //---------------------------------------
 
     if (fname.Contains("/home/")) {
-        cout << "Load local alignment file" << endl;
+        std::cout << "Load local alignment file" << std::endl;
         TRD_alignment_file = TFile::Open("/home/ceres/schmah/ALICE/Database/TRD_Align_2016.root");
-        cout << "Local alignment file loaded" << endl;
+        std::cout << "Local alignment file loaded" << std::endl;
     } else {
-        cout << "Load alignment file" << endl;
+        std::cout << "Load alignment file" << std::endl;
         TRD_alignment_file =
             fLocalMode ? TFile::Open("/cvmfs/alice-ocdb.cern.ch/calibration/data/2016/OCDB/TRD/Align/Data/Run0_999999999_v1_s0.root")
                        : TFile::Open("alien:///alice/data/2016/OCDB/TRD/Align/Data/Run0_999999999_v1_s0.root");
         // TRD_alignment_file = TFile::Open("/alice/data/2016/OCDB/TRD/Align/Data/Run0_999999999_v1_s0.root");
-        cout << "Alignment file from database loaded" << endl;
+        std::cout << "Alignment file from database loaded" << std::endl;
     }
 
-    cout << "Open calibration file" << endl;
+    std::cout << "Open calibration file" << std::endl;
     // TRD_calibration_file_AA = TFile::Open("alien::///alice/cern.ch/user/a/aschmah/Data/TRD_Calib_vDfit_and_LAfit_3456.root");
     TRD_calibration_file_AA = fLocalMode
                                   ? TFile::Open("Data/TRD_Calib_vDfit_and_LAfit_23_11_2020.root ")
                                   : TFile::Open("alien::///alice/cern.ch/user/a/aschmah/Data/TRD_Calib_vDfit_and_LAfit_23_11_2020.root ");
-    cout << "Calibration file opened" << endl;
+    std::cout << "Calibration file opened" << std::endl;
     tg_v_fit_vs_det = (TGraph*)TRD_calibration_file_AA->Get("tg_v_fit_vs_det");
     for (Int_t i_det = 0; i_det < 540; i_det++) {
         h_v_fit_vs_det->SetBinContent(i_det + 1, 1.05);
@@ -596,7 +547,7 @@ Bool_t Ali_make_tracklets_from_digits::UserNotify() {
         tg_LA_factor_fit_vs_det->GetPoint(i_point, det, LA);
         h_LA_factor_fit_vs_det->SetBinContent(det + 1, LA);
     }
-    cout << "Calibration file opened" << endl;
+    std::cout << "Calibration file opened" << std::endl;
 
     AliCDBEntry* align_cdb = (AliCDBEntry*)TRD_alignment_file->Get("AliCDBEntry");
     TClonesArray* TRD_align_array = (TClonesArray*)align_cdb->GetObject();
@@ -604,7 +555,7 @@ Bool_t Ali_make_tracklets_from_digits::UserNotify() {
     // First do the alignment per sector, then per chamber
     for (Int_t i_entry = 0; i_entry < TRD_align_array->GetEntries(); i_entry++) {
         AliAlignObjParams* Align_test = (AliAlignObjParams*)TRD_align_array->At(i_entry);
-        char* name = (char*)Align_test->GetSymName();
+        Char_t* name = (Char_t*)Align_test->GetSymName();
         TString sname(name);
         Int_t length = sname.Length();
         TString sector_name = sname(6, 2);
@@ -625,32 +576,32 @@ Bool_t Ali_make_tracklets_from_digits::UserNotify() {
             Double_t* rot_matrix = TM_TRD_rotation_det[detector].GetRotationMatrix();
             // for(Int_t i = 0; i < 9; i++)
             //{
-            //     cout << "i: " << i << ", rot_matrix: " << rot_matrix[i] << endl;
+            //     std::cout << "i: " << i << ", rot_matrix: " << rot_matrix[i] << std::endl;
             // }
             Double_t TRD_translation[3];
             Align_test->GetTranslation(TRD_translation);
             TV3_TRD_translation[detector].SetXYZ(TRD_translation[0], TRD_translation[1], TRD_translation[2]);
-            // cout << "i_entry: " << i_entry << ", trans = {" << TV3_TRD_translation[i_entry].X() << ", " <<
-            // TV3_TRD_translation[i_entry].Y() << ", " << TV3_TRD_translation[i_entry].Z() << "}" << endl;
+            // std::cout << "i_entry: " << i_entry << ", trans = {" << TV3_TRD_translation[i_entry].X() << ", " <<
+            // TV3_TRD_translation[i_entry].Y() << ", " << TV3_TRD_translation[i_entry].Z() << "}" << std::endl;
             // TM_TRD_rotation_det[i_entry].Print();
         } else {
             Align_test->GetMatrix(TM_TRD_rotation_sector[sector]);
         }
     }
-    cout << "TRD_align_array entries: " << TRD_align_array->GetEntries() << endl;
+    std::cout << "TRD_align_array entries: " << TRD_align_array->GetEntries() << std::endl;
 
-    cout << "End of UserNotify" << endl;
+    std::cout << "End of UserNotify" << std::endl;
     return kTRUE;
 }
 
 //________________________________________________________________________
 void Ali_make_tracklets_from_digits::UserCreateOutputObjects() {
-    cout << "" << endl;
-    cout << "In UserCreateOutputObjects" << endl;
-    cout << "fDigitsInputFileName: " << fDigitsInputFileName.Data() << endl;
+    std::cout << "" << std::endl;
+    std::cout << "In UserCreateOutputObjects" << std::endl;
+    std::cout << "fDigitsInputFileName: " << fDigitsInputFileName.Data() << std::endl;
 
     OpenFile(1);
-    cout << "File opened" << endl;
+    std::cout << "File opened" << std::endl;
 
     fListOfHistos = new TList();
     fListOfHistos->SetOwner();
@@ -659,7 +610,7 @@ void Ali_make_tracklets_from_digits::UserCreateOutputObjects() {
     fListOfHistos->Add(h_ADC);
 
     OpenFile(2);
-    cout << "File opened" << endl;
+    std::cout << "File opened" << std::endl;
 
     AS_Event = new Ali_AS_Event();
     AS_Track = new Ali_AS_Track();
@@ -684,41 +635,33 @@ void Ali_make_tracklets_from_digits::UserCreateOutputObjects() {
     // PostData(2,Tree_AS_Event);
     PostData(2, Tree_TRD_ST_Event);
 
-    cout << "PostData called" << endl;
+    std::cout << "PostData called" << std::endl;
 }
 
 //________________________________________________________________________
 Bool_t Ali_make_tracklets_from_digits::NextEvent(Bool_t preload) {
     fEventNoInFile++;
-    // cout << "fEventNoInFile: " << fEventNoInFile << endl;
+    // std::cout << "fEventNoInFile: " << fEventNoInFile << std::endl;
     fDigitsLoadedFlag = kFALSE;
 
     if (preload) {
-        // cout << "Preload"  << endl;
+        // std::cout << "Preload"  << std::endl;
         return ReadDigits();
     } else {
-        // cout << "No preload"  << endl;
+        // std::cout << "No preload"  << std::endl;
         return kTRUE;
     }
 }
 
 //________________________________________________________________________
 void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
-    // cout << "" << endl;
-    // cout << "Analysis started" << endl;
-    // cout <<
-    // "----------------------------------------------------------------------------------------------------------------------------------"
-    // << endl;
+    // std::cout << "Analysis started" << std::endl;
 
     Int_t flag_calibrated = 1;  // 0 = standard fixed precalibration used, 1 = use pre calibration from root input file
-    //-----------------------------------------------------------------
     // IMPORTANT: call NextEvent() for book-keeping
     NextEvent();
     // if(fEventNoInFile > 50) return;
-    //-----------------------------------------------------------------
 
-    //-----------------------------------------------------------------------------------------------------
-    //-----------------------------------------------------------------------------------------------------
     // prepare event data structures
     AliESDEvent* fESD = dynamic_cast<AliESDEvent*>(InputEvent());
     if (!fESD) {
@@ -726,7 +669,6 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
         return;
     }
 
-    //-----------------------------------------------------------------
     // Check if TRD digits (raw data) are available for this ESD event
     if (!ReadDigits()) {
         printf("No digits in event: %d \n", N_total_events);  // XALEX comment after test
@@ -737,7 +679,7 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
     Int_t N_batch = 19;  // 9,8,7,6,5,4,3,2,1
     // if(!((N_total_events+N_batch)%19 == 0)) return; // take  only every 9th event XALEX activate again after test
 
-    // cout << "ReadDigits completed" << endl;
+    // std::cout << "ReadDigits completed" << std::endl;
 
     for (Int_t i_det = 0; i_det < 540; i_det++) {
         Int_t N_times = fDigMan->GetDigits(i_det)->GetNtime();
@@ -747,13 +689,11 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
             break;
         }
     }
-    //-----------------------------------------------------------------
 
-    //-----------------------------------------------------------------
     // Monte Carlo
     // https://alice-doc.github.io/alice-analysis-tutorial/analysis/MC.html
 
-    // cout << "Monte carlo loop started" << endl;
+    // std::cout << "Monte carlo loop started" << std::endl;
     TRD_ST_Event->clearMCparticleList();
     fMCEvent = MCEvent();
     if (fMCEvent) {
@@ -803,20 +743,19 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
         }
     }
 
-    // cout << "Monte carlo loop ended" << endl;
-    //-----------------------------------------------------------------
+    // std::cout << "Monte carlo loop ended" << std::endl;
 
     AliAnalysisManager* man = AliAnalysisManager::GetAnalysisManager();
     if (man) {
         // Int_t run_id = man->GetRunFromPath(); // doesn't work
-        // cout << "Got AliAnalysisManager, run_id: " << run_id << endl;
+        // std::cout << "Got AliAnalysisManager, run_id: " << run_id << std::endl;
         AliInputEventHandler* inputHandler = (AliInputEventHandler*)(man->GetInputEventHandler());
         if (inputHandler) {
-            // cout << "Got AliInputEventHandler" << endl;
+            // std::cout << "Got AliInputEventHandler" << std::endl;
             fPIDResponse = inputHandler->GetPIDResponse();
         }
     }
-    // cout << "cent: " << fPIDResponse->GetCurrentCentrality() << endl;
+    // std::cout << "cent: " << fPIDResponse->GetCurrentCentrality() << std::endl;
 
     Int_t eventNumber = fESD->GetEventNumberInFile();
     Int_t N_tracks = fESD->GetNumberOfTracks();
@@ -835,11 +774,10 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
     // printf("RunNum: %d \n",RunNum);
 
     Double_t Sign_magnetic_field = (magF / fabs(magF));
-    // cout << "Trigger: " <<  fESD->GetFiredTriggerClasses() << endl;
+    // std::cout << "Trigger: " <<  fESD->GetFiredTriggerClasses() << std::endl;
 
     Int_t digit_counter = 0;
 
-    //------------------------------------------
     // For space points (digits) tree
     // Fill event information
     AS_Event->clearTrackList();
@@ -872,9 +810,7 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
         AS_Event->setcent_class_V0AEq(MultSelection->GetMultiplicityPercentile("V0AEq"));
         AS_Event->setcent_class_V0CEq(MultSelection->GetMultiplicityPercentile("V0CEq"));
     }
-    //------------------------------------------
 
-    //------------------------------------------
     // Fill event information for tracklets tree
     TRD_ST_Event->clearTrackList();
     TRD_ST_Event->clearTrackletList();
@@ -904,11 +840,8 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
     TRD_ST_Event->setcent_class_V0CEq(AS_Event->getcent_class_V0CEq());
 
     // printf("Event information filled \n");
-    //------------------------------------------
 
 #if 1
-    //------------------------------------------
-    // printf("--------------------- \n");
     // printf("Get TOF clusters \n");
 
     TClonesArray* Arr_TOF_Cluster = fESD->GetESDTOFClusters();
@@ -946,27 +879,19 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
         auto clsPhi = thishit->GetPhi();
         auto clsZ = thishit->GetZ();
 
-        cout << "channel number: " << tofchannel << endl;
-        cout << "clstime: " << clstime << " clstimeraw: " << clstimeraw <<  endl;
-        cout << "Ntofhits: " << thiscluster->GetNTOFhits() << " idx: " << hit0idx << endl;
-        cout << "Z: " << clsZ << " R: " << clsR << " phi: " << clsPhi << endl;
+        std::cout << "channel number: " << tofchannel << std::endl;
+        std::cout << "clstime: " << clstime << " clstimeraw: " << clstimeraw <<  endl;
+        std::cout << "Ntofhits: " << thiscluster->GetNTOFhits() << " idx: " << hit0idx << std::endl;
+        std::cout << "Z: " << clsZ << " R: " << clsR << " phi: " << clsPhi << std::endl;
         */
     }
-    // cout << "Number of TOF clusters: " << NTOFcls << endl;
-    // printf("--------------------- \n");
-    //------------------------------------------
+    // std::cout << "Number of TOF clusters: " << NTOFcls << std::endl;
 #endif
 
-    //-----------------------------------------------------------------
-    // cout << "" << endl;
-    // cout << "" << endl;
-    // cout << "----------------------------------------------------------------------------------------" << endl;
-    // cout << "Event number: " << fEventNoInFile << ", event number with TRD digits: " << N_good_events << endl;
+    // std::cout << "Event number: " << fEventNoInFile << ", event number with TRD digits: " << N_good_events << std::endl;
     // printf("Event number: %d, N_tracks: %d, cent(V0M): %f , cent(CL0): %f
     // \n",fEventNoInFile,N_tracks,MultSelection->GetMultiplicityPercentile("SPDTracklets"));
-    //-----------------------------------------------------------------
 
-    //-----------------------------------------------------------------
     Double_t TRD_time_per_bin = 0.1;             // 100 ns = 0.1 mus, always constant, independent from number of time bins.
     Double_t TRD_drift_velocity = 1.56;          // 1.56 cm/mus, this value is too high for p+Pb, database values are now used
     Double_t TPC_TRD_matching_window = 10.0;     // Matching window between TRD digits (pad position) and TPC track in cm
@@ -984,14 +909,13 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
     // printf("There are %d TRD tracklets in this event\n", N_TRD_tracklets);
 
     TClonesArray* TC_tofHits = fESD->GetESDTOFHits();
-    // printf(" \n");
     // printf("   ------------> TC_tofHits: \n");
     //  AliCDBEntry->GetObject()->IsA()->GetName()   only root 5
     Int_t N_entries_TOF = TC_tofHits->GetEntries();
     if (N_entries_TOF > 0) {
         Double_t TOF_R = ((AliESDTOFHit*)TC_tofHits->First())->GetR();
-        // cout << "N_tracks: " << N_tracks <<  ", TC_tofHits: " << TC_tofHits << ", IsA: " << TC_tofHits ->First()->IsA()->GetName() << ",
-        // TOF_R: " << TOF_R << ", N_entries_TOF: " << N_entries_TOF << endl;
+        // std::cout << "N_tracks: " << N_tracks <<  ", TC_tofHits: " << TC_tofHits << ", IsA: " << TC_tofHits ->First()->IsA()->GetName()
+        // << ", TOF_R: " << TOF_R << ", N_entries_TOF: " << N_entries_TOF << std::endl;
         for (Int_t i_tof = 0; i_tof < N_entries_TOF; i_tof++) {
             Double_t TOF_Z = ((AliESDTOFHit*)TC_tofHits->At(i_tof))->GetZ();
             Int_t TOF_channel = ((AliESDTOFHit*)TC_tofHits->At(i_tof))->GetTOFchannel();
@@ -999,9 +923,7 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
             // printf("i_tof: %d, TOF_Z: %4.3f, TOF_channel: %d, TOF_time: %d \n",i_tof,TOF_Z,TOF_channel,TOF_time);
         }
     }
-    // printf(" \n");
 
-    //-----------------------------------------------------------------
     // TRD online tracklet loop
     for (Int_t iTracklet = 0; iTracklet < N_TRD_tracklets; iTracklet++) {
         AliESDTrdTracklet* tracklet = fESD->GetTrdTracklet(iTracklet);
@@ -1026,7 +948,6 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
         Double_t TRD_row_pos = padplane->GetRowPos(BinZ_tracklet);  // fPadRow[row] + fPadRowSMOffset;
         Double_t TRD_row_size = padplane->GetRowSize(BinZ_tracklet);
 
-        //------------------------
         // Calculate tracklet offset space point
         Double_t loc_tracklet[3] = {TRD_time0 - 0.0, y_local, TRD_row_pos - TRD_row_size / 2.0};
         Double_t glb_tracklet[3] = {0.0, 0.0, 0.0};
@@ -1035,9 +956,7 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
         fGeo->RotateBack(det_tracklet, loc_tracklet, glb_tracklet);
         TM_TRD_rotation_sector[i_sector].LocalToMaster(glb_tracklet, glb_tracklet_align_sec);
         TM_TRD_rotation_det[det_tracklet].LocalToMaster(glb_tracklet_align_sec, glb_tracklet_align);
-        //------------------------
 
-        //------------------------
         // Calculate tracklet direction vector
         Double_t loc_tracklet_vec[3] = {TRD_time0 - 3.0, y_local - dy_local, TRD_row_pos - TRD_row_size / 2.0};
         Double_t glb_tracklet_vec[3] = {0.0, 0.0, 0.0};
@@ -1050,7 +969,6 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
         for (Int_t i_xyz = 0; i_xyz < 3; i_xyz++) {
             glb_tracklet_align_vec[i_xyz] -= glb_tracklet_align[i_xyz];
         }
-        //------------------------
 
         TVector3 TV3_offset(glb_tracklet_align[0], glb_tracklet_align[1], glb_tracklet_align[2]);
         TVector3 TV3_dir(glb_tracklet_align_vec[0], glb_tracklet_align_vec[1], glb_tracklet_align_vec[2]);
@@ -1066,25 +984,23 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
         AS_Tracklet->set_TV3_dir(TV3_dir);
         AS_Tracklet->set_online_dy(dy_local);
     }
-    //-----------------------------------------------------------------
 
     Int_t N_good_tracks = 0;
 
-    //-----------------------------------------------------------------
     // Loop over all TRD channels
     std::vector<TVector3> TV3_TRD_hits;
     std::vector<TVector3> TV3_TRD_hits_uncalib;
     std::vector<TVector3> TV3_TRD_hits_det_angle;
     std::vector<Double_t> vec_TRD_hits_ADC_value;
     std::vector<Double_t> vec_TRD_hits_time;
-    std::vector<std::vector<Int_t> > vec_TRD_det_lay_row_col;
+    std::vector<std::vector<Int_t>> vec_TRD_det_lay_row_col;
 
     std::vector<TVector3> TV3_TRD_hits_middle;
     std::vector<TVector3> TV3_TRD_hits_det_angle_middle;
-    std::vector<std::vector<Double_t> > vec_TRD_hits_ADC_values_time;
-    std::vector<std::vector<TVector3> > vec_TRD_hits_points_time;
-    std::vector<std::vector<TVector3> > vec_TRD_hits_points_time_uncalib;
-    std::vector<std::vector<Int_t> > vec_TRD_hits_det_lay_row_col;
+    std::vector<std::vector<Double_t>> vec_TRD_hits_ADC_values_time;
+    std::vector<std::vector<TVector3>> vec_TRD_hits_points_time;
+    std::vector<std::vector<TVector3>> vec_TRD_hits_points_time_uncalib;
+    std::vector<std::vector<Int_t>> vec_TRD_hits_det_lay_row_col;
 
     vec_TRD_det_lay_row_col.resize(4);
 
@@ -1094,7 +1010,7 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
     Double_t sum_full_ADC_digit_det[540];
     memset(sum_full_ADC_digit_det, 0, sizeof(sum_full_ADC_digit_det));  // for automatically-allocated arrays
 
-    cout << "Loop over all TRD detectors" << endl;
+    std::cout << "Loop over all TRD detectors" << std::endl;
     for (Int_t i_det = 0; i_det < 540; i_det++) {
         Int_t N_columns = fDigMan->GetDigits(i_det)->GetNcol();
         Int_t N_rows = fDigMan->GetDigits(i_det)->GetNrow();
@@ -1140,7 +1056,7 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
                 vec_points_time_bins.resize(N_times);
                 std::vector<TVector3> vec_points_time_bins_uncalib;
                 vec_points_time_bins_uncalib.resize(N_times);
-                // cout << "i_column: " << i_column << ", i_row: " << i_row << ", N_times: " << N_times << endl;
+                // std::cout << "i_column: " << i_column << ", i_row: " << i_row << ", N_times: " << N_times << std::endl;
                 Double_t arr[30] = {0.0};
 
                 for (Int_t i_time = 0; i_time < N_times; i_time++) {
@@ -1170,10 +1086,9 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
                         // if(i_det == 537) printf("i_time: %d, col: %d, row: %d, det: %d, ADC: %f
                         // \n",i_time,i_column,i_row,i_det,ADC_amplitude);
                         arr[i_time] = ADC_amplitude;
-                        // cout << "i_time: " << i_time << ", fill arr: " << arr[i_time] << endl;
-                        // cout << "fBaseline: " << fBaseline << ", ADC: " << ADC_amplitude << endl;
+                        // std::cout << "i_time: " << i_time << ", fill arr: " << arr[i_time] << std::endl;
+                        // std::cout << "fBaseline: " << fBaseline << ", ADC: " << ADC_amplitude << std::endl;
 
-                        //----------------------
                         // Calculate global position for fired TRD pad
                         Double_t TRD_col_end = padplane->GetColEnd();
                         Double_t TRD_row_end = padplane->GetRowEnd();         // fPadRow[fNrows-1] - fLengthOPad + fPadRowSMOffset;
@@ -1207,7 +1122,7 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
 #if 0
                         //printf("LA_calib: %4.3f, LA: %4.3f \n",LA_calib,ChamberExB->GetValue(i_det));
 
-			//cout << "i_time: " << i_time << ", magF: " << magF << ", x: " << TRD_drift_time << ", lorentz_angle_corr_y: " << lorentz_angle_corr_y << endl;
+			//std::cout << "i_time: " << i_time << ", magF: " << magF << ", x: " << TRD_drift_time << ", lorentz_angle_corr_y: " << lorentz_angle_corr_y << std::endl;
 
 			//Float_t              TRD_loc_Z        = (Float_t)i_row*8.5+8.5/2.0;
 			//Float_t              TRD_loc_Y        = (Float_t)i_column*0.725 + 0.725/2.0 - (144.0*0.725)/2.0;
@@ -1253,7 +1168,6 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
                         //printf("      =====>>>>> loc_vec_old: {%4.3f,  %4.3f, %4.3f},  glb_vec_align_old: {%4.3f,  %4.3f, %4.3f}  \n",loc_vec_old[0],loc_vec_old[1],loc_vec_old[2],glb_vec_align_old[0],glb_vec_align_old[1],glb_vec_align_old[2]);
 #endif
 
-                        //-------------------------
                         // calibrated, ignore names...
                         Double_t loc_uncalib[3] = {
                             fGeo->AnodePos() - TRD_drift_time, TRD_loc_Y,
@@ -1298,10 +1212,8 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
 
                         // printf("glb_vec_align: {%4.3f, %4.3f, %4.3f}, glb_vec_align_old: {%4.3f, %4.3f, %4.3f}
                         // \n",glb_vec_align[0],glb_vec_align[1],glb_vec_align[2],glb_vec_align_old[0],glb_vec_align_old[1],glb_vec_align_old[2]);
-                        //-------------------------
 
 #if 0
-                        //-------------------------
                         // From Ruben 11.03.2021
                         printf(" \n");
                         Double_t loc_align[3]  = {fGeo->AnodePos() - TRD_drift_time,TRD_loc_Y,TRD_row_pos - TRD_row_size/2.0 - padplane->GetRowPos(padplane->GetNrows() / 2)};  // RS: I assume this this correct, depends e.g. on units of TRD_time0 and TRD_drift_time
@@ -1317,7 +1229,6 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
                         fGeo->RotateBack(i_det,glo_align, lab_align);
                         printf("glob: {%4.3f, %4.3f, %4.3f} \n",lab_align[0],lab_align[1],lab_align[2]);
                         printf("My vec: {%4.3f, %4.3f, %4.3f}, Ruben's vec: {%4.3f, %4.3f, %4.3f} \n",glb_align_uncalib[0],glb_align_uncalib[1],glb_align_uncalib[2],lab_align[0],lab_align[1],lab_align[2]);
-                        //-------------------------
 #endif
 
 #if 0
@@ -1352,20 +1263,20 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
 #if 0
 			if(i_det >= 0 && i_time == 0 && i_column == 0 && i_row >= 0)
 			{
-			    cout << "i_det: " << i_det << ", i_row: " << i_row << ", N_rows: " << N_rows << ", row_end: " << TRD_row_end
+			    std::cout << "i_det: " << i_det << ", i_row: " << i_row << ", N_rows: " << N_rows << ", row_end: " << TRD_row_end
 				<< ", row_end_ROC: " << TRD_row_end_ROC << ", row_pos: " << TRD_row_pos
 				<< ", row_pos_ROC: " << TRD_row_pos_ROC
-				<< ", row_size: " << TRD_row_size << endl;
+				<< ", row_size: " << TRD_row_size << std::endl;
 			}
 #endif
 
 #if 0
-			cout << "ADC_amplitude: " << ADC_amplitude << ", i_row: " << i_row
+			std::cout << "ADC_amplitude: " << ADC_amplitude << ", i_row: " << i_row
 			    << ", i_column: " << i_column << ", i_time: " << i_time << ", detector: " << i_det
 			    << ", col_end: " << TRD_col_end << ", row_end: " << TRD_row_end
 			    << ", col_spacing: " << TRD_col_spacing << ", row_spacing: " << TRD_row_spacing
 			    << ", col_pos: " << TRD_col_pos << ", row_pos: " << TRD_row_pos
-			    << ", col_size: " << TRD_col_size << ", row_size: " << TRD_row_size << endl;
+			    << ", col_size: " << TRD_col_size << ", row_size: " << TRD_row_size << std::endl;
 #endif
 
                         if (ADC_amplitude > 0.0) {
@@ -1391,16 +1302,13 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
                             vec_ADC_time_bins[i_time] = ADC_amplitude;
                             vec_points_time_bins[i_time] = TV3_TRD_hit;
                             vec_points_time_bins_uncalib[i_time] = TV3_TRD_hit_uncalib;
-                            // cout << "vec calib: " << vec_points_time_bins[i_time] << endl;
-                            // cout << "vec uncalib: " << vec_points_time_bins_uncalib[i_time] << endl;
+                            // std::cout << "vec calib: " << vec_points_time_bins[i_time] << std::endl;
+                            // std::cout << "vec uncalib: " << vec_points_time_bins_uncalib[i_time] << std::endl;
                         }
-                        //----------------------
                     }
 
                 }  // end of time loop
-                //--------------------------------------------------
 
-                //--------------------------------------------------
                 Int_t max_time_bin = -1;
                 Double_t max_ADC_val = 0.0;
                 if (ADC_amplitude_sum_times > 0.0) {
@@ -1411,13 +1319,10 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
                         }
                     }
                 }
-                //--------------------------------------------------
 
-                //------------------------------------------------------------
                 // Determine reference position (time bin with highest ADC value) for one single pad
                 // Fill vector with ADC values for all 24 time bins for this pad
                 if (ADC_amplitude_sum_times > 0.0 && max_time_bin > 0) {
-                    //----------------------
                     // Calculate global position for fired TRD pad
                     Float_t TRD_time0 = fGeo->GetTime0(i_layer);  // in cm
                     AliTRDpadPlane* padplane = fGeo->GetPadPlane(i_det);
@@ -1500,7 +1405,6 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
                     //printf("      =====>>>>> loc_vec_ref_old: {%4.3f,  %4.3f, %4.3f},  glb_vec_ref_align_old: {%4.3f,  %4.3f, %4.3f}  \n",loc_vec_ref_old[0],loc_vec_ref_old[1],loc_vec_ref_old[2],glb_vec_ref_align_old[0],glb_vec_ref_align_old[1],glb_vec_ref_align_old[2]);
 #endif
 
-                    //----------------
                     Double_t loc_ref[3] = {
                         fGeo->AnodePos() - TRD_drift_time, TRD_loc_Y,
                         TRD_row_pos - TRD_row_size / 2.0 -
@@ -1530,7 +1434,6 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
                     // \n",glb_vec_ref_align_old[0],glb_vec_ref_align_old[1],glb_vec_ref_align_old[2],glb_vec_ref_align[0],glb_vec_ref_align[1],glb_vec_ref_align[2]);
                     // printf("   --> glb_ref_align_old: {%4.3f, %4.3f, %4.3f}, new: {%4.3f, %4.3f, %4.3f}
                     // \n",glb_ref_align_old[0],glb_ref_align_old[1],glb_ref_align_old[2],glb_ref_align[0],glb_ref_align[1],glb_ref_align[2]);
-                    //----------------
 
                     TVector3 TV3_TRD_hit_middle, TV3_TRD_hit_det_angle_middle;
                     TV3_TRD_hit_middle.SetXYZ(glb_ref_align[0], glb_ref_align[1], glb_ref_align[2]);
@@ -1568,7 +1471,6 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
                         //}
                     }
 
-                    //-------------
                     // Test
                     // AS_Digit              = AS_Event ->getTRD_digit(digit_counter);
                     // Int_t    bsector      = AS_Digit ->get_sector();
@@ -1579,12 +1481,9 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
                     //     printf("test i_time: %d, i_digit: %d, i_sector: %d, pos: {%4.3f, %4.3f, %4.3f}
                     //     \n",i_time,digit_counter,bsector,AS_Digit->get_pos(i_time,0),AS_Digit->get_pos(i_time,1),AS_Digit->get_pos(i_time,2));
                     // }
-                    //-------------
-                    // printf(" \n");
 
                     digit_counter++;
                 }
-                //------------------------------------------------------------
 
             }  // end of row loop
         }      // end of column loop
@@ -1595,21 +1494,16 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
     for (Int_t i_det = 0; i_det < 540; i_det++) {
         AS_Event->setADC_sum_det(i_det, sum_full_ADC_digit_det[i_det]);
     }
-    // cout << "max_N_columns: " << max_N_columns << ", max_N_rows: " << max_N_rows << endl;
-    //-----------------------------------------------------------------
+    // std::cout << "max_N_columns: " << max_N_columns << ", max_N_rows: " << max_N_rows << std::endl;
 
-    //-----------------------------------------------------------------
     // Track loop
-    // cout << "" << endl;
-    // cout << "-----------------------------------------------------------------" << endl;
-    // cout << "Start matching " << N_tracks << " TPC tracks with " << TV3_TRD_hits_middle.size() << " TRD pads" << endl;
+    // std::cout << "Start matching " << N_tracks << " TPC tracks with " << TV3_TRD_hits_middle.size() << " TRD pads" << std::endl;
     N_good_tracks = 0;
     Int_t N_matched_TRD_hits_total = 0;
     for (Int_t iTracks = 0; iTracks < N_tracks; iTracks++) {
-        //---------------------------------------------------------------
         // Gather track information
 
-        // cout << "iTracks," << iTracks << endl;
+        // std::cout << "iTracks," << iTracks << std::endl;
 
         // We always want the ESD track
         AliESDtrack* track = fESD->GetTrack(iTracks);
@@ -1647,9 +1541,9 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
         TLorentzVector TLV_p_vec;
         Double_t p_vec_energy = TMath::Sqrt(p_vec[0] * p_vec[0] + p_vec[1] * p_vec[1] + p_vec[2] * p_vec[2] + 0.938 * 0.938);
         TLV_p_vec.SetPxPyPzE(p_vec[0], p_vec[1], p_vec[2], p_vec_energy);
-        // cout << "TLV_p_vec.P: " << TLV_p_vec.P() << ", P: " << Track_p << ", TLV_p_vec.Theta: " << TLV_p_vec.Theta() << ", Theta: " <<
-        // Track_theta
-        //<< ", TLV_p_vec.Phi: " << TLV_p_vec.Phi() << ", phi: " << Track_phi  << endl;
+        // std::cout << "TLV_p_vec.P: " << TLV_p_vec.P() << ", P: " << Track_p << ", TLV_p_vec.Theta: " << TLV_p_vec.Theta() << ", Theta: "
+        // << Track_theta
+        //<< ", TLV_p_vec.Phi: " << TLV_p_vec.Phi() << ", phi: " << Track_phi  << std::endl;
 
         ULong_t status = track->GetStatus();
         Int_t ITS_refit = 0;
@@ -1687,14 +1581,12 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
 
         Double_t TRD_ADC_bin_width = 100.0;
 
-        //-------------------
         Int_t N_ITS_cls = 0;
         for (Int_t i_ITS_layer = 0; i_ITS_layer < 6; ++i_ITS_layer) {
             if (track->HasPointOnITSLayer(i_ITS_layer)) {
                 N_ITS_cls |= 1 << i_ITS_layer;  // setting bit i_ITS_layer to 1
             }
         }
-        //-------------------
 
         TLorentzVector TL_vec;
         TL_vec.SetPtEtaPhiM(Track_pT, Track_eta, Track_phi, 0.1349766);
@@ -1721,7 +1613,6 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
         AS_Track->setTrack_length(Track_length);
         AS_Track->setMC_label(MC_label);  // borquez edit
 
-        //-------------------
         // Get TRD information
         Int_t N_TRD_cls = 0;
         Double_t TRD_sum_ADC = 0.0;
@@ -1744,9 +1635,8 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
         N_good_tracks++;
 
     }  // End of TPC track loop
-    // cout << "Tracks matched" << endl;
+    // std::cout << "Tracks matched" << std::endl;
 
-    //-----------------------------------
     // Make tracklets
     Double_t Delta_x = 1.8;  // 1.8;
     Double_t Delta_z = 10.0;
@@ -1810,16 +1700,14 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
     }      // end detector loop
 
     // printf("Tracklet information filled \n");
-    //-----------------------------------
 
-    //------------------------------------------
     // Loop over all tracks -> fill tree for tracklets tree
     UShort_t NumTracks = AS_Event->getNumTracks();  // number of tracks in this event
 
     for (UShort_t i_track = 0; i_track < NumTracks; ++i_track)  // loop over all tracks of the actual event
     {
         TRD_ST_TPC_Track = TRD_ST_Event->createTrack();  // TPC track
-        // cout << "i_track: " << i_track << ", of " << NumTracks << endl;
+        // std::cout << "i_track: " << i_track << ", of " << NumTracks << std::endl;
         AS_Track = AS_Event->getTrack(i_track);  // take the track
         TRD_ST_TPC_Track->setnsigma_e_TPC(AS_Track->getnsigma_e_TPC());
 
@@ -1854,15 +1742,12 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
                                        helix_TRD_par[5]);
     }
     // printf("Track information filled \n");
-    //------------------------------------------
 
-    //-----------------------------------
     // Tree_AS_Event ->Fill();
     Tree_TRD_ST_Event->Fill();  // new tracklets tree to be filled
     // Long64_t size_of_tree = Tree_TRD_ST_Event ->GetEntries();
     // printf("Event: %d, tree filled, size of tree: %lld \n",N_good_events,size_of_tree);
     // printf("Tree filled \n");
-    //-----------------------------------
 
 #if 0
     ProcInfo_t procInfo;
@@ -1882,7 +1767,6 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
     N_good_events++;
 }
 
-//----------------------------------------------------------------------------------------
 TVector3 Ali_make_tracklets_from_digits::calculate_point_on_Straight_dca_to_Point_2D(TVector3& base, TVector3& dir, TVector3& point) {
     // calculates the TVector3 on the straight line which is closest to point
 
@@ -1905,16 +1789,14 @@ TVector3 Ali_make_tracklets_from_digits::calculate_point_on_Straight_dca_to_Poin
 
     return dist_vec;
 }
-//----------------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------------
 Double_t Ali_make_tracklets_from_digits::Calc_SVD_tracklet(Int_t i_det, Int_t i_trkl) {
     // https://www.codefull.net/2015/06/3d-line-fitting/ -> MATLAB code
 
     TVector3 TV3_point;
     TVector3 TV3_mean(0.0, 0.0, 0.0);
-    vector<TVector3> arr_TV3_points;
-    vector<TVector3> arr_TV3_points_mean;
+    std::vector<TVector3> arr_TV3_points;
+    std::vector<TVector3> arr_TV3_points_mean;
 
     Double_t SVD_chi2 = 0.0;  // chi2 of the tracklet
 
@@ -1974,17 +1856,15 @@ Double_t Ali_make_tracklets_from_digits::Calc_SVD_tracklet(Int_t i_det, Int_t i_
     return SVD_chi2;
     // printf("SVD_chi2 = %4.3f \n",SVD_chi2);
 }
-//----------------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------------
 void Ali_make_tracklets_from_digits::Make_clusters_and_get_tracklets_fit(Double_t Delta_x, Double_t Delta_z, Double_t factor_missing) {
     // printf("TTRD_ST_Make_Tracklets::Make_clusters_and_get_tracklets_fit() \n");
 
     // Reset();
 
-    vector<vector<vector<vector<Double_t> > > > vec_all_TRD_digits;
-    vector<vector<vector<vector<Double_t> > > > vec_all_TRD_digits_clusters;
-    vector<vector<vector<Int_t> > > vec_used_clusters;
+    std::vector<std::vector<std::vector<std::vector<Double_t>>>> vec_all_TRD_digits;
+    std::vector<std::vector<std::vector<std::vector<Double_t>>>> vec_all_TRD_digits_clusters;
+    std::vector<std::vector<std::vector<Int_t>>> vec_used_clusters;
 
     vec_all_TRD_digits.resize(540);
     vec_all_TRD_digits_clusters.resize(540);
@@ -1995,8 +1875,8 @@ void Ali_make_tracklets_from_digits::Make_clusters_and_get_tracklets_fit(Double_
         vec_all_TRD_digits_clusters[i_det].resize(30);  // time bins
         vec_used_clusters[i_det].resize(30);            // time bins
     }
-    vector<Double_t> vec_digit_data;          // x,y,z,ADC
-    vector<Double_t> vec_digit_cluster_data;  // x,y,z,ADC,N_digits
+    std::vector<Double_t> vec_digit_data;          // x,y,z,ADC
+    std::vector<Double_t> vec_digit_cluster_data;  // x,y,z,ADC,N_digits
     vec_digit_data.resize(4);
     vec_digit_cluster_data.resize(5);
 
@@ -2040,7 +1920,6 @@ void Ali_make_tracklets_from_digits::Make_clusters_and_get_tracklets_fit(Double_
         }
     }
 
-    //-------------------------------------------------------
     // Make clusters for each detector and time bin
     // Individial digits -> clusters/time bin
     for (Int_t i_det = 0; i_det < 540; i_det++) {
@@ -2058,7 +1937,7 @@ void Ali_make_tracklets_from_digits::Make_clusters_and_get_tracklets_fit(Double_
             //     \n",i_digit,vec_all_TRD_digits[i_det][i_time][i_digit][0],vec_all_TRD_digits[i_det][i_time][i_digit][1],vec_all_TRD_digits[i_det][i_time][i_digit][2],vec_all_TRD_digits[i_det][i_time][i_digit][3]);
             // }
 
-            // cout << "Sorting vector" << endl;
+            // std::cout << "Sorting vector" << std::endl;
             //  First order the vector from high to low ADC values
 
             // vec_all_TRD_digits // 540 chambers, 24 time bins, (x,y,z,ADC)
@@ -2071,7 +1950,7 @@ void Ali_make_tracklets_from_digits::Make_clusters_and_get_tracklets_fit(Double_
             //     \n",i_digit,vec_all_TRD_digits[i_det][i_time][i_digit][0],vec_all_TRD_digits[i_det][i_time][i_digit][1],vec_all_TRD_digits[i_det][i_time][i_digit][2],vec_all_TRD_digits[i_det][i_time][i_digit][3]);
             // }
 
-            vector<Int_t> arr_used_digits;
+            std::vector<Int_t> arr_used_digits;
             arr_used_digits.clear();
             arr_used_digits.resize((Int_t)vec_all_TRD_digits[i_det][i_time].size());
             for (Int_t i_digit_max = 0; i_digit_max < (Int_t)vec_all_TRD_digits[i_det][i_time].size(); i_digit_max++) {
@@ -2114,7 +1993,6 @@ void Ali_make_tracklets_from_digits::Make_clusters_and_get_tracklets_fit(Double_
                 // \n",i_digit_max,pos_ADC_max[0],pos_ADC_max[1],pos_ADC_max[2]);
 
             }  // end of digit max loop
-            //-------------------------------
 
             // Start from the maximum ADC value(s)
             Double_t baseline = 10.0;
@@ -2180,7 +2058,6 @@ void Ali_make_tracklets_from_digits::Make_clusters_and_get_tracklets_fit(Double_
         }      // end of timebin loop
     }
     // printf("arrangement of clusters done \n");
-    //-------------------------------------------------------
 
     // create "tracklets"
     // Int_t sector = (Int_t)(i_det/30);
@@ -2188,18 +2065,17 @@ void Ali_make_tracklets_from_digits::Make_clusters_and_get_tracklets_fit(Double_
     // Int_t layer  = i_det%6;
     // Int_t i_det = layer + 6*stack + 30*sector;
 
-    //-------------------------------------------------------
     // Connect clusters within each chamber
     // Clusters/time bin -> connect them time bin wise
 
     vec_connected_clusters.clear();      // defined in Ana_Digits_functions.h as static
     vec_connected_clusters.resize(540);  // i_det i_trkl i_point (up to 24 time bins, can be less) i_xyz
 
-    vector<vector<Double_t> > vec_single_connected_clusters;  // for one tracklet, i_point (up to 24 time bins, can be less) i_xyz
-    vector<Double_t> vec_single_point;                        // x,y,z,ADC
-    vec_single_point.resize(4);                               // x,y,z,ADC
+    std::vector<std::vector<Double_t>> vec_single_connected_clusters;  // for one tracklet, i_point (up to 24 time bins, can be less) i_xyz
+    std::vector<Double_t> vec_single_point;                       // x,y,z,ADC
+    vec_single_point.resize(4);                              // x,y,z,ADC
 
-    vector<vector<Int_t> > vec_N_clusters_self_tracklet_points;
+    std::vector<std::vector<Int_t>> vec_N_clusters_self_tracklet_points;
     vec_N_clusters_self_tracklet_points.resize(540);
 
     Int_t min_nbr_cls = 10;
@@ -2219,8 +2095,8 @@ void Ali_make_tracklets_from_digits::Make_clusters_and_get_tracklets_fit(Double_
 
             vec_N_clusters_self_tracklet_points[i_det].resize(N_clusters);
 
-            vector<vector<Int_t> > vec_cls_shared;
-            vector<Int_t> vec_single_trkl_cls;
+            std::vector<std::vector<Int_t>> vec_cls_shared;
+            std::vector<Int_t> vec_single_trkl_cls;
 
             for (Int_t i_cls = 0; i_cls < N_clusters; i_cls++)  // loop over all clusters in one detector and for time bin 0
             {
@@ -2292,8 +2168,8 @@ void Ali_make_tracklets_from_digits::Make_clusters_and_get_tracklets_fit(Double_
                     sum_cluster_quality += best_cluster_quality;
                     vec_single_trkl_cls.push_back(best_sub_cluster);
 
-                    // cout << "best_sub_cluster: " << best_sub_cluster << ", i_time_sub: " << i_time_sub << ", i_layer_sub: " <<
-                    // i_layer_sub << endl;
+                    // std::cout << "best_sub_cluster: " << best_sub_cluster << ", i_time_sub: " << i_time_sub << ", i_layer_sub: " <<
+                    // i_layer_sub << std::endl;
                     if (best_sub_cluster < 0) {
                         scale_fac_add *= factor_missing;  // one time bin was missing, increase matching window
                         missed_time_bin++;
@@ -2331,9 +2207,7 @@ void Ali_make_tracklets_from_digits::Make_clusters_and_get_tracklets_fit(Double_
     }
 
     // printf("connection of clusters within detector done \n");
-    //-------------------------------------------------------
 
-    //-------------------------------------------------------
     // Fit the time bin wise connected clusters
 
     // Is fitting the tracklets and doing the global fit through all first cluster points of all available layers
@@ -2374,7 +2248,6 @@ void Ali_make_tracklets_from_digits::Make_clusters_and_get_tracklets_fit(Double_
             // printf("i_det: %d, i_trkl: %d, N_clusters: %d \n",i_det,i_trkl,vec_N_clusters_self_tracklet_points[i_det][i_trkl]);
             if ((Int_t)vec_connected_clusters[i_det][i_trkl].size() < 10) continue;  // ALEX
 
-            //------------------------------
             Double_t SVD_chi2 = Calc_SVD_tracklet(i_det, i_trkl);
 
             if (SVD_chi2 > 0.5) continue;  // 0.5 ALEX
@@ -2385,9 +2258,7 @@ void Ali_make_tracklets_from_digits::Make_clusters_and_get_tracklets_fit(Double_
             // vec_ADC_val[i_det][i_trkl].resize((Int_t)vec_self_tracklet_points[i_det][i_trkl].size());
             vec_ADC_val[i_det][i_trkl].resize((Int_t)vec_connected_clusters[i_det][i_trkl].size());  // ggALEX
 
-            //------------------------------
 
-            //-------------------------------------------------------
             // Calculate tracklet base and direction vectors
 
             // Space point on straight line which is closes to first space point of fitted clusters
@@ -2427,7 +2298,6 @@ void Ali_make_tracklets_from_digits::Make_clusters_and_get_tracklets_fit(Double_
                 vec_ADC_val[i_det][i_trkl][i_timebin] = vec_connected_clusters[i_det][i_trkl][i_timebin][3];  // ALEX
             }
 
-            //-------------------------------------------------------
 
             Double_t radius = TMath::Sqrt(TMath::Power(TV3_base_fit_t0[0], 2) + TMath::Power(TV3_base_fit_t0[1], 2));
             // printf("amin: %4.3f, par: {%4.3f, %4.3f, %4.3f, %4.3f} \n",amin,parFit[0],parFit[1],parFit[2],parFit[3]);
@@ -2439,19 +2309,16 @@ void Ali_make_tracklets_from_digits::Make_clusters_and_get_tracklets_fit(Double_
         }
     }
 
-    //-------------------------------------------------------
 }
 
-//----------------------------------------------------------------------------------------
 
 //________________________________________________________________________
-void Ali_make_tracklets_from_digits::Terminate(Option_t*) { cout << "In terminate" << endl; }
+void Ali_make_tracklets_from_digits::Terminate(Option_t*) { std::cout << "In terminate" << std::endl; }
 
 //________________________________________________________________________
 void Ali_make_tracklets_from_digits::FillHelix(AliESDtrack* track_in, Double_t magF_in) {
     const Float_t kAlmost1 = 0.99999988;
 
-    //-------------------
     // Get helix
     // Track parametrization:
     // https://www.physi.uni-heidelberg.de/~sma/alice/LukasLayer_bachelor.pdf
@@ -2459,30 +2326,28 @@ void Ali_make_tracklets_from_digits::FillHelix(AliESDtrack* track_in, Double_t m
     track_in->GetExternalParameters(x_param, p_param);  // Those are the parameters used for vertexing
     alpha_alt = track_in->GetAlpha();
 
-    //---------------------------------------------------------------------
     // This function returns external representation of the track parameters
     // at the inner layer of TRD
-    //---------------------------------------------------------------------
     Double_t alpha_TRD, x_param_TRD, p_param_TRD[5];  // p are the track paramters, 0 = Y, 1 = Z, 2 = Snp, 3 = Tgl (p[2]/pt), 4 = Signed1Pt
     track_in->GetOuterExternalParameters(alpha_TRD, x_param_TRD, p_param_TRD);
 
-    // cout << "x_param: " << x_param << endl;
+    // std::cout << "x_param: " << x_param << std::endl;
     // for(Int_t i_param = 0; i_param < 5; i_param++)
     //{
-    //     cout << "A i_param: " << i_param << ", param: " << p_param[i_param] << endl;
+    //     std::cout << "A i_param: " << i_param << ", param: " << p_param[i_param] << std::endl;
     // }
 
     // track_in->GetOuterExternalParameters(alpha,x_param,p_param); //
     // alpha_alt = alpha;
     // Double_t fX     = track_in->GetX();
 
-    // cout << "x_param: " << x_param << endl;
+    // std::cout << "x_param: " << x_param << std::endl;
     // for(Int_t i_param = 0; i_param < 5; i_param++)
     //{
-    //     cout << "B i_param: " << i_param << ", param: " << p_param[i_param] << endl;
+    //     std::cout << "B i_param: " << i_param << ", param: " << p_param[i_param] << std::endl;
     // }
 
-    // cout << "x_param: " << x_param << endl;
+    // std::cout << "x_param: " << x_param << std::endl;
 
     // const AliExternalTrackParam* TPC_track_param = track_in->GetOuterParam();
     // const Double_t* p_param_b = TPC_track_param->GetParameter();
@@ -2494,7 +2359,6 @@ void Ali_make_tracklets_from_digits::FillHelix(AliESDtrack* track_in, Double_t m
     // }
     // x_param = fX;
 
-    //-------------------
     // Correct way of filling aliHelix from
     // http://personalpages.to.infn.it/~puccio/htmldoc/src/AliHelix.cxx.html#PalT1E
     // line 52
@@ -2523,7 +2387,7 @@ void Ali_make_tracklets_from_digits::FillHelix(AliESDtrack* track_in, Double_t m
 
         // track_in->GetExternalParameters(x_alt,fHelix_alt); // Those are the parameters used for vertexing
 
-        // cout << "alpha: " << alpha << ", alpha_alt: " << alpha_alt << endl;
+        // std::cout << "alpha: " << alpha << ", alpha_alt: " << alpha_alt << std::endl;
 
         //
         // circle parameters
@@ -2558,13 +2422,10 @@ void Ali_make_tracklets_from_digits::FillHelix(AliESDtrack* track_in, Double_t m
 
         Float_t fHelix_alt_par2_sav = fHelix_alt[2];
 
-        //-----------------
         // Method 1
         fHelix_alt[2] = TMath::ATan2(-(fHelix_alt[5] - fHelix_alt[6]), fHelix_alt[0] - fHelix_alt[7]);  // phi0
         if (fHelix_alt[4] > 0) fHelix_alt[2] -= TMath::Pi();
-        //-----------------
 
-        //-----------------
         // Method 2, seems to be  identical to method 1
         // Float_t sphi  = TMath::Abs(fHelix_alt[2]) < kAlmost1 ? asinf(fHelix_alt[2]) : TMath::Sign(TMath::Pi()/2, fHelix_alt[2]);
         // fHelix_alt[2] = sphi + alpha_alt; // phi0 // RS : use float version
@@ -2572,7 +2433,6 @@ void Ali_make_tracklets_from_digits::FillHelix(AliESDtrack* track_in, Double_t m
         // Float_t sphi  = TMath::Abs(fHelix_alt_par2_sav) < kAlmost1 ? asinf(fHelix_alt_par2_sav) : TMath::Sign(TMath::Pi()/2,
         // fHelix_alt_par2_sav); fHelix_alt_par2_sav = sphi + alpha_alt; // phi0 // RS : use float version printf("par2: {%4.3f, %4.3f}
         // \n",fHelix_alt[2],fHelix_alt_par2_sav);
-        //-----------------
 
         fHelix_alt[5] = fHelix_alt[6];
         fHelix_alt[0] = fHelix_alt[7];
@@ -2591,7 +2451,6 @@ void Ali_make_tracklets_from_digits::FillHelix(AliESDtrack* track_in, Double_t m
 
     // printf("AliHelix params: {%4.3f, %4.3f}, {%4.3f, %4.3f}, {%4.3f, %4.3f}, {%4.3f, %4.3f}, {%4.3f, %4.3f}, {%4.3f, %4.3f}
     // \n",aliHelix.fHelix[0],aliHelix_TRD.fHelix[0],aliHelix.fHelix[1],aliHelix_TRD.fHelix[1],aliHelix.fHelix[2],aliHelix_TRD.fHelix[2],aliHelix.fHelix[3],aliHelix_TRD.fHelix[3],aliHelix.fHelix[4],aliHelix_TRD.fHelix[4],aliHelix.fHelix[5],aliHelix_TRD.fHelix[5]);
-    //-------------------
 }
 
 //________________________________________________________________________
@@ -2613,10 +2472,10 @@ void Ali_make_tracklets_from_digits::FindDCAHelixPoint(TVector3 space_vec, AliHe
     Float_t scale_length = 30.0;
     while (fabs(scale_length) > 0.1 && loopcounter < 100)  // stops when the length is too small
     {
-        // cout << "n = " << loopcounter << ", pA[0] = " << pA[0]
+        // std::cout << "n = " << loopcounter << ", pA[0] = " << pA[0]
         //     << ", pA[1] = " << pA[1] << ", d[0] = " << distarray[0]
         //     << ", d[1] = " << distarray[1] << ", flip = " << flip
-        //     << ", scale_length = " << scale_length << endl;
+        //     << ", scale_length = " << scale_length << std::endl;
         if (distarray[0] > distarray[1]) {
             if (loopcounter != 0) {
                 if (flip == 1.0)
@@ -2651,7 +2510,7 @@ void Ali_make_tracklets_from_digits::FindDCAHelixPoint(TVector3 space_vec, AliHe
         loopcounter++;
     }
 
-    if (loopcounter >= 100) cout << "WARNING: FindDCAHelixPoint exceeded maximum of 100 loops" << endl;
+    if (loopcounter >= 100) std::cout << "WARNING: FindDCAHelixPoint exceeded maximum of 100 loops" << std::endl;
 
     if (distarray[0] < distarray[1]) {
         pathA = pA[0];
@@ -2664,7 +2523,7 @@ void Ali_make_tracklets_from_digits::FindDCAHelixPoint(TVector3 space_vec, AliHe
 
 //________________________________________________________________________
 Bool_t Ali_make_tracklets_from_digits::ReadDigits() {
-    // cout << "In ReadDigits" << endl;
+    // std::cout << "In ReadDigits" << std::endl;
     //  don't do anything if the digits have already been loaded
     if (fDigitsLoadedFlag) return kTRUE;
 
@@ -2712,7 +2571,7 @@ Bool_t Ali_make_tracklets_from_digits::ReadDigits() {
         }
     }
 
-    // cout << " --> size of fDigMan: " << sizeof(fDigMan) << endl;
+    // std::cout << " --> size of fDigMan: " << sizeof(fDigMan) << std::endl;
     // printf("sum_dim_before: %d, sum_dim_after: %d \n",sum_dim_before,sum_dim_after);
 
     fDigitsLoadedFlag = kTRUE;

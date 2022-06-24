@@ -1,3 +1,6 @@
 **/Out
 **.log
-**/.vscode
+**/.vscode/
+**.d
+**.pcm
+**.so
