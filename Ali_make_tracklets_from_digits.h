@@ -3,10 +3,6 @@
 
 class AliTRDdigitsManager;
 
-#include "AliAnalysisTaskSE.h"
-#include "AliTOFGeometry.h"
-#include "AliTRDcalibDB.h"
-
 #include "TClonesArray.h"
 #include "TDecompSVD.h"
 #include "TGrid.h"
@@ -15,22 +11,31 @@ class AliTRDdigitsManager;
 #include "TMatrixD.h"
 #include "TObject.h"
 
+#include "AliAnalysisTaskSE.h"
+#include "AliTOFGeometry.h"
+#include "AliTRDcalibDB.h"
+
 #include "Ali_AS_Event.h"
 #include "Ali_AS_EventLinkDef.h"
+#include "Ali_AS_TRD_digit.h"
+#include "Ali_AS_Track.h"
+#include "Ali_AS_Tracklet.h"
+#include "Ali_AS_offline_Tracklet.h"
 
+#include "Ali_Helix.h"
 #include "Ali_MC_particle.h"
+#include "Ali_TRD_ST_Event.h"
 #include "Ali_TRD_ST_LinkDef.h"
 #include "Ali_TRD_ST_TOF_hit.h"
-#include "Ali_TRD_ST_Tracklets.h"
 #include "Ali_TRD_ST_TPC_Track.h"
-#include "Ali_TRD_ST_Event.h"
-#include "Ali_Helix.h"
+#include "Ali_TRD_ST_Tracklets.h"
 
 ClassImp(Ali_AS_TRD_digit);
 ClassImp(Ali_AS_Track);
 ClassImp(Ali_AS_Tracklet);
 ClassImp(Ali_AS_offline_Tracklet);
 ClassImp(Ali_AS_Event);
+
 ClassImp(Ali_TRD_ST_Tracklets);
 ClassImp(Ali_TRD_ST_TOF_hit);
 ClassImp(Ali_MC_particle);
