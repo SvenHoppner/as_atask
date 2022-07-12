@@ -44,6 +44,7 @@
 #include "AliESDVertex.h"
 #include "AliESDfriend.h"
 #include "AliESDtrackCuts.h"
+#include "AliESDv0.h"
 
 #include "TChain.h"
 #include "TClonesArray.h"
@@ -617,6 +618,8 @@ void Ali_make_tracklets_from_digits::UserCreateOutputObjects() {
     // AS_Tracklet    = new Ali_AS_Tracklet();
     // AS_offline_Tracklet    = new Ali_AS_offline_Tracklet();
     AS_Digit = new Ali_AS_TRD_digit();
+    if(!TRD_ST_V0) TRD_ST_V0 = new Ali_TRD_TRD_ST_V0(); //hoppner edit
+
     Tree_AS_Event = NULL;
     Tree_AS_Event = new TTree("Tree_AS_Event", "AS_Events");
     Tree_AS_Event->Branch("Tree_AS_Event_branch", "AS_Event", AS_Event);
@@ -767,6 +770,8 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
     Double_t T0zVertex = fESD->GetT0zVertex();
     AliCentrality* Centrality = fESD->GetCentrality();
     Double_t MeanBeamIntAA = fESD->GetESDRun()->GetMeanIntensity(0, 0);
+    Int_t numberV0  =  fESD ->GetNumberOfV0s () ;
+
 
     printf("---->>>> eventNumber: %d, N_tracks: %d, N_TRD_tracks: %d, N_TRD_tracklets: %d \n", eventNumber, N_tracks, N_TRD_tracks,
            N_TRD_tracklets);
@@ -815,6 +820,7 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
     TRD_ST_Event->clearTrackList();
     TRD_ST_Event->clearTrackletList();
     TRD_ST_Event->clearTOFhitList();
+    TRD_ST_Event->clearV0List();
 
     TRD_ST_Event->setTriggerWord(AS_Event->getTriggerWord());
     TRD_ST_Event->setN_TRD_time_bins(N_time_bins);
@@ -984,6 +990,8 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
         AS_Tracklet->set_TV3_dir(TV3_dir);
         AS_Tracklet->set_online_dy(dy_local);
     }
+
+
 
     Int_t N_good_tracks = 0;
 
@@ -1742,6 +1750,37 @@ void Ali_make_tracklets_from_digits::UserExec(Option_t*) {
                                        helix_TRD_par[5]);
     }
     // printf("Track information filled \n");
+
+
+
+
+    // V0 loop Hoppner edit
+    for (Int_t iV0 = 0; iV0 < numberV0; iV0++) {
+        AliESDv0* V0 = fESD->GetV0(iV0);
+        if (!V0) {
+            printf("ERROR: Could not receive V0 %d\n", iV0);
+            continue;
+        }
+        
+
+        TRD_ST_V0 = TRD_ST_Event->createV0();  // online V0
+        Float_t x, y, z;
+        V0->GetXYZ(x,y,z);
+        TRD_ST_V0->SetXYZ(x,y,z);
+        
+        Float_t px, py, pz;
+        V0->GetNPxPyPz(px,py,pz);
+        TRD_ST_V0->SetNPxPyPz(px,py,pz);
+        V0->GetPPxPyPz(px,py,pz);
+        TRD_ST_V0->SetPPxPyPz(px,py,pz);
+
+        
+        TRD_ST_V0->SetNindex(V0->GetNindex());
+        TRD_ST_V0->SetPindex(V0->GetPindex());
+        TRD_ST_V0->SetEffMass(V0->GetEffMass());
+        TRD_ST_V0->SetOnFlyStatus(V0->GetOnFlyStatus());
+        
+    }
 
     // Tree_AS_Event ->Fill();
     Tree_TRD_ST_Event->Fill();  // new tracklets tree to be filled

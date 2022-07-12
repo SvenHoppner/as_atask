@@ -9,6 +9,7 @@
 #include "Ali_TRD_ST_TOF_hit.h"
 #include "Ali_TRD_ST_TPC_Track.h"
 #include "Ali_TRD_ST_Tracklets.h"
+#include "Ali_TRD_ST_V0.h"
 
 class Ali_TRD_ST_Event : public TObject {
    private:
@@ -41,11 +42,13 @@ class Ali_TRD_ST_Event : public TObject {
     Int_t fNumTracklets;    // number of tracks in event
     Int_t fNumMCparticles;  // number of MC particles
     Int_t fNumTOFhits;      // number of TOF hits
+    Int_t fNumV0s;           // number of V0s hoppner edit 
 
     TClonesArray* fTracks;
     TClonesArray* fTracklets;
     TClonesArray* fMCparticles;
     TClonesArray* fTOFhits;
+    TClonesArray* fV0s;
 
    public:
     // constructor
@@ -75,6 +78,7 @@ class Ali_TRD_ST_Event : public TObject {
           fNumTracks(0),
           fNumTracklets(0),
           fNumMCparticles(0),
+          fNumV0s(0), //hoppner edit
           fTracks(),
           fTracklets(),
           fMCparticles() {
@@ -82,6 +86,7 @@ class Ali_TRD_ST_Event : public TObject {
         fTracklets = new TClonesArray("Ali_TRD_ST_Tracklets", 10);
         fMCparticles = new TClonesArray("Ali_MC_particle", 10);
         fTOFhits = new TClonesArray("Ali_TRD_ST_TOF_hit", 10);
+        fV0s = new TClonesArray("Ali_TRD_ST_V0", 10); //hoppner edit
     }
 
     // destructor
@@ -94,6 +99,9 @@ class Ali_TRD_ST_Event : public TObject {
         fMCparticles = NULL;
         delete fTOFhits;
         fTOFhits = NULL;
+        delete fV0s; //hoppner edit
+        fV0s = NULL; //hoppner edit
+        
     }
 
     // setters
@@ -155,6 +163,10 @@ class Ali_TRD_ST_Event : public TObject {
 
     Int_t getNumTracklets() const { return fNumTracklets; }
     Ali_TRD_ST_Tracklets* getTracklet(Int_t i) const { return i < fNumTracklets ? (Ali_TRD_ST_Tracklets*)((*fTracklets)[i]) : NULL; }
+
+    //hoppner edit
+    Int_t getNumV0s() const { return fNumV0s; }
+    Ali_TRD_ST_Tracklets* getV0(Int_t i) const { return i < fNumV0s ? (Ali_TRD_ST_V0*)((*fV0s)[i]) : NULL; }
 
     Ali_MC_particle* createMCparticle()  // Monte Carlo particle
     {
@@ -220,7 +232,24 @@ class Ali_TRD_ST_Event : public TObject {
         fNumTracklets = 0;
         fTracklets->Clear();
     }
+    
+//hoppner edit
 
+    Ali_TRD_ST_TPC_V0* createV0() {
+        if (fNumV0s == fV0s->GetSize()) fV0s->Expand(fNumV0s + 10);
+        if (fNumV0s >= 65000) {
+            Fatal("Ali_TRD_ST_Event::createV0()", "ERROR: Too many V0s (>65000)!");
+            exit(2);
+        }
+
+        new ((*fV0s)[fNumV0s++]) Ali_TRD_ST_TPC_V0;
+        return (Ali_TRD_ST_TPC_V0*)((*fV0s)[fNumV0s - 1]);
+    }
+
+    void clearV0List() {
+        fNumV0s = 0;
+        fV0s->Clear();
+    }
     ClassDef(Ali_TRD_ST_Event, 1);  // A simple event compiled of tracks
 };
 

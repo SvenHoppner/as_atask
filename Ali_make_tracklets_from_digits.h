@@ -29,6 +29,7 @@ class AliTRDdigitsManager;
 #include "Ali_TRD_ST_TOF_hit.h"
 #include "Ali_TRD_ST_TPC_Track.h"
 #include "Ali_TRD_ST_Tracklets.h"
+#include "Ali_TRD_TRD_ST_V0.h" //Hoppner edit
 
 ClassImp(Ali_AS_TRD_digit);
 ClassImp(Ali_AS_Track);
@@ -36,11 +37,13 @@ ClassImp(Ali_AS_Tracklet);
 ClassImp(Ali_AS_offline_Tracklet);
 ClassImp(Ali_AS_Event);
 
+
 ClassImp(Ali_TRD_ST_Tracklets);
 ClassImp(Ali_TRD_ST_TOF_hit);
 ClassImp(Ali_MC_particle);
 ClassImp(Ali_TRD_ST_TPC_Track);
 ClassImp(Ali_TRD_ST_Event);
+ClassImp(Ali_TRD_TRD_ST_V0); //Hoppner edit
 ClassImp(Ali_Helix);
 
 static std::vector<std::vector<std::vector<std::vector<Double_t>>>> vec_connected_clusters;  // i_det i_trkl i_point i_xyz
@@ -69,6 +72,7 @@ class Ali_make_tracklets_from_digits : public AliAnalysisTaskSE {
           TRD_ST_MC_particle(0),
           TRD_ST_TPC_Track(0),
           TRD_ST_Event(0),
+          TRD_ST_V0(0), //Hoppner edit
           Tree_TRD_ST_Event(0),
           h_ADC(0x0),
           fEventNoInFile(-2),
@@ -153,6 +157,7 @@ class Ali_make_tracklets_from_digits : public AliAnalysisTaskSE {
     Ali_TRD_ST_TOF_hit* TRD_ST_TOF_hit;
     Ali_TRD_ST_TPC_Track* TRD_ST_TPC_Track;
     Ali_TRD_ST_Event* TRD_ST_Event;
+    Ali_TRD_TRD_ST_V0* TRD_ST_V0 ;          //Hoppner edit
     TTree* Tree_TRD_ST_Event;
     TH1D* h_ADC;
 
